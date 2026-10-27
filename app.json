@@ -1,24 +1,32 @@
 {
   "expo": {
-    "name": "a-la-mano-app",
-    "slug": "a-la-mano-app",
+    "name": "A La Mano",
+    "slug": "a-la-mano",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#b80035"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "co.alamano.app"
     },
     "android": {
+      "package": "co.alamano.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#b80035",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       }
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "85837732-0d8d-4dc9-afeb-d6632ebcd040"
+      }
     }
   }
 }
