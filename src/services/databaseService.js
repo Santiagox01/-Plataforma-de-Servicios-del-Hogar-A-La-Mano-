@@ -1,12 +1,14 @@
 import { supabase } from './supabase';
 import { INITIAL_PROFESSIONALS } from '../data/mockData';
-
+import { ProStatus } from '../constants/statuses';
+import { SupabaseAdapter } from './adapters/supabaseAdapter';
+ 
 // Expedientes iniciales de verificación (HU02 / HU03)
 export const INITIAL_VERIFICATION_DOSSIERS = {
   usr_pro_1: {
     professionalId: 'usr_pro_1',
     name: 'Carlos Mario Restrepo',
-    status: 'verified',
+    status: ProStatus.VERIFIED,
     score: '100%',
     verifiedAt: '2026-01-15',
     verifiedBy: 'Laura Restrepo (Auditoría UdeA)',
@@ -20,7 +22,7 @@ export const INITIAL_VERIFICATION_DOSSIERS = {
   usr_pro_4: {
     professionalId: 'usr_pro_4',
     name: 'Pedro Pablo Jaramillo',
-    status: 'pending',
+    status: ProStatus.PENDING,
     score: '75%',
     verifiedAt: null,
     verifiedBy: null,
@@ -32,7 +34,7 @@ export const INITIAL_VERIFICATION_DOSSIERS = {
     ]
   }
 };
-
+ 
 // Cargar profesionales desde Supabase o fallback local
 export async function fetchProfessionals() {
   try {
@@ -60,32 +62,17 @@ export async function fetchProfessionals() {
           avatar_url
         )
       `);
-
+ 
     if (!error && data && data.length > 0) {
-      return data.map(item => ({
-        id: item.id,
-        name: item.profiles?.full_name || 'Técnico Especialista',
-        specialtyName: item.specialty_name,
-        categories: item.categories || ['electricidad'],
-        rate: Number(item.base_rate) || 45000,
-        rating: Number(item.rating) || 5.0,
-        reviewCount: item.review_count || 0,
-        distanceKm: Number(item.distance_km) || 2.0,
-        zone: item.profiles?.zone || 'El Poblado',
-        status: item.status,
-        ccNumber: item.cc_number,
-        conteReg: item.conte_reg,
-        bio: item.bio,
-        avatar: item.profiles?.avatar_url || 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=180&auto=format&fit=crop&q=80'
-      }));
+      return data.map(SupabaseAdapter.professionalToDomain);
     }
   } catch (e) {
     console.log('Using local professionals data.');
   }
-
+ 
   return INITIAL_PROFESSIONALS;
 }
-
+ 
 // Obtener expediente de verificación de un técnico (HU02 / HU03)
 export async function fetchVerificationDossier(proId) {
   try {
@@ -93,63 +80,58 @@ export async function fetchVerificationDossier(proId) {
       .from('verification_documents')
       .select('*')
       .eq('professional_id', proId);
-
+ 
     if (!error && data && data.length > 0) {
       return {
         professionalId: proId,
-        documents: data.map(d => ({
-          id: d.id,
-          type: d.document_type,
-          title: d.document_type === 'cc_front' ? 'Cédula de Ciudadanía' : d.document_type === 'police_record' ? 'Antecedentes Judiciales' : d.document_type === 'conte_certificate' ? 'Matrícula Técnica' : 'Selfie Biométrica',
-          status: d.status,
-          rejectionReason: d.rejection_reason,
-          fileUrl: d.file_url
-        }))
+        documents: data.map(SupabaseAdapter.documentToDomain)
       };
     }
   } catch (e) {
     console.log('Using local verification dossier.');
   }
-
+ 
   return INITIAL_VERIFICATION_DOSSIERS[proId] || INITIAL_VERIFICATION_DOSSIERS.usr_pro_4;
 }
-
+ 
 // Actualizar estado de verificación del técnico por auditor (HU03)
 export async function updateProfessionalStatus(proId, newStatus, reason = null, adminName = 'Auditor UdeA') {
+  let persisted = false;
   try {
     const { error } = await supabase
       .from('professionals')
       .update({
         status: newStatus,
-        verified_at: newStatus === 'verified' ? new Date().toISOString() : null
+        verified_at: newStatus === ProStatus.VERIFIED ? new Date().toISOString() : null
       })
       .eq('id', proId);
-
-    if (!error) {
-      console.log(`Updated pro ${proId} to ${newStatus} in Supabase`);
+ 
+    persisted = !error;
+    if (error) {
+      console.warn('Supabase no actualizó el estado:', error.message);
     }
   } catch (e) {
-    console.log('Supabase offline, updating status locally.');
+    console.warn('Supabase offline, estado actualizado solo en local:', e.message);
   }
-
+ 
   // Actualizar también en el dossier local
   if (INITIAL_VERIFICATION_DOSSIERS[proId]) {
     INITIAL_VERIFICATION_DOSSIERS[proId].status = newStatus;
-    INITIAL_VERIFICATION_DOSSIERS[proId].verifiedAt = newStatus === 'verified' ? new Date().toISOString().split('T')[0] : null;
-    INITIAL_VERIFICATION_DOSSIERS[proId].verifiedBy = newStatus === 'verified' ? adminName : null;
-    if (newStatus === 'verified') {
+    INITIAL_VERIFICATION_DOSSIERS[proId].verifiedAt = newStatus === ProStatus.VERIFIED ? new Date().toISOString().split('T')[0] : null;
+    INITIAL_VERIFICATION_DOSSIERS[proId].verifiedBy = newStatus === ProStatus.VERIFIED ? adminName : null;
+    if (newStatus === ProStatus.VERIFIED) {
       INITIAL_VERIFICATION_DOSSIERS[proId].score = '100%';
       INITIAL_VERIFICATION_DOSSIERS[proId].documents.forEach(d => d.status = 'approved');
-    } else if (newStatus === 'rejected') {
+    } else if (newStatus === ProStatus.REJECTED) {
       INITIAL_VERIFICATION_DOSSIERS[proId].rejectionReason = reason;
       INITIAL_VERIFICATION_DOSSIERS[proId].documents[2].status = 'rejected';
       INITIAL_VERIFICATION_DOSSIERS[proId].documents[2].note = reason;
     }
   }
-
-  return { success: true, status: newStatus };
+ 
+  return { success: true, persisted, status: newStatus };
 }
-
+ 
 // Subir o simular carga de documento de identidad (HU02)
 export async function uploadVerificationDocument(proId, docType, docNumber) {
   try {
@@ -161,8 +143,10 @@ export async function uploadVerificationDocument(proId, docType, docNumber) {
         status: 'submitted'
       }
     ]);
-  } catch (e) {}
-
+  } catch (e) {
+    console.warn('No se pudo radicar el documento en Supabase:', e.message);
+  }
+ 
   if (INITIAL_VERIFICATION_DOSSIERS[proId]) {
     const doc = INITIAL_VERIFICATION_DOSSIERS[proId].documents.find(d => d.type === docType || d.id === docType);
     if (doc) {
@@ -171,10 +155,10 @@ export async function uploadVerificationDocument(proId, docType, docNumber) {
       doc.note = 'Documento radicado recientemente por el profesional';
     }
   }
-
+ 
   return { success: true, message: 'Documento cargado exitosamente para revisión.' };
 }
-
+ 
 // Crear orden de servicio en base de datos (HU05)
 export async function createServiceOrder(orderData) {
   try {
@@ -197,13 +181,16 @@ export async function createServiceOrder(orderData) {
         service_status: 'solicitado'
       }
     ]).select().maybeSingle();
-
+ 
     if (!error && data) {
-      return { success: true, service: data };
+      return { success: true, persisted: true, service: data };
+    }
+    if (error) {
+      console.warn('No se guardó la orden en Supabase:', error.message);
     }
   } catch (e) {
-    console.log('Saved booking in local store mode.');
+    console.warn('Orden guardada solo en modo local:', e.message);
   }
-
-  return { success: true };
+ 
+  return { success: true, persisted: false };
 }

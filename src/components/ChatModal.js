@@ -14,10 +14,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
-
+import { AVATARS } from '../constants/config';
+ 
 export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026-01' }) {
   if (!pro) return null;
-
+ 
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState([
     {
@@ -45,9 +46,9 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
       time: '12:50 PM'
     }
   ]);
-
+ 
   const scrollViewRef = useRef(null);
-
+ 
   useEffect(() => {
     if (visible) {
       setTimeout(() => {
@@ -55,21 +56,21 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
       }, 250);
     }
   }, [visible, messages]);
-
+ 
   const handleSend = (textToSend) => {
     const text = (textToSend || inputMessage).trim();
     if (!text) return;
-
+ 
     const newMsg = {
       id: `msg-${Date.now()}`,
       sender: 'client',
       text: text,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-
+ 
     setMessages(prev => [...prev, newMsg]);
     setInputMessage('');
-
+ 
     // Respuesta simulada del técnico después de 1.5s para enriquecer la demo
     setTimeout(() => {
       const responses = [
@@ -90,14 +91,14 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
       ]);
     }, 1200);
   };
-
+ 
   const QUICK_REPLIES = [
     '¡Hola! Ya estoy en la casa.',
     '¿Cuánto tardas en llegar?',
     'El timbre no suena, porfa avísame al llegar.',
     '¡Listo, aquí te espero!'
   ];
-
+ 
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView style={styles.safeArea}>
@@ -111,16 +112,16 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
             <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
               <Ionicons name="arrow-back" size={24} color={THEME.colors.textMain} />
             </TouchableOpacity>
-
+ 
             <View style={styles.proInfoContainer}>
               <View style={styles.avatarWrapper}>
                 <Image
-                  source={{ uri: pro.avatar || 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150' }}
+                  source={{ uri: pro.avatar || AVATARS.professional }}
                   style={styles.avatar}
                 />
                 <View style={styles.onlineDot} />
               </View>
-
+ 
               <View style={{ flex: 1 }}>
                 <Text style={styles.proName} numberOfLines={1}>{pro.name}</Text>
                 <View style={styles.subRow}>
@@ -129,7 +130,7 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
                 </View>
               </View>
             </View>
-
+ 
             <TouchableOpacity
               style={styles.infoBtn}
               onPress={() => alert(`Técnico: ${pro.name}\nEspecialidad: ${pro.specialtyName}\nTeléfono protegido por la plataforma A La Mano.`)}
@@ -137,7 +138,7 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
               <Ionicons name="shield-checkmark" size={20} color={THEME.colors.verified} />
             </TouchableOpacity>
           </View>
-
+ 
           {/* Lista de Mensajes */}
           <ScrollView
             ref={scrollViewRef}
@@ -155,7 +156,7 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
                   </View>
                 );
               }
-
+ 
               const isClient = item.sender === 'client';
               return (
                 <View
@@ -182,7 +183,7 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
               );
             })}
           </ScrollView>
-
+ 
           {/* Respuestas Rápidas */}
           <View style={styles.quickRepliesContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickRepliesScroll}>
@@ -198,7 +199,7 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
               ))}
             </ScrollView>
           </View>
-
+ 
           {/* Input de Mensaje */}
           <View style={styles.inputContainer}>
             <TextInput
@@ -231,7 +232,7 @@ export default function ChatModal({ visible, pro, onClose, serviceId = 'SRV-2026
     </Modal>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

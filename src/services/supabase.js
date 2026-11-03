@@ -1,12 +1,12 @@
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-
+ 
 export const SUPABASE_PROJECT_REF = 'ucpzdfslwfegiyypxnkg';
 export const SUPABASE_URL = `https://${SUPABASE_PROJECT_REF}.supabase.co`;
-
+ 
 const STORAGE_KEY_CUSTOM_ANON = 'a_la_mano_supabase_anon_key_v1';
-
+ 
 // Adaptador seguro para AsyncStorage en Expo / React Native
 const safeStorageAdapter = {
   getItem: async (key) => {
@@ -32,34 +32,32 @@ const safeStorageAdapter = {
     }
   }
 };
-
+ 
+// Configuración de autenticación definida UNA sola vez
+const AUTH_OPTIONS = {
+  storage: safeStorageAdapter,
+  autoRefreshToken: true,
+  persistSession: true,
+  detectSessionInUrl: false
+};
+ 
+// Único punto donde se crea el cliente de Supabase
+const buildClient = (key) =>
+  createClient(SUPABASE_URL, key || 'placeholder-anon-key', { auth: AUTH_OPTIONS });
+ 
 // Variable interna de la clave activa
 let activeAnonKey =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
-
-export let supabase = createClient(SUPABASE_URL, activeAnonKey || 'placeholder-anon-key', {
-  auth: {
-    storage: safeStorageAdapter,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false
-  }
-});
-
+ 
+export let supabase = buildClient(activeAnonKey);
+ 
 // Inicializar y cargar clave personalizada si fue guardada
 export async function initializeSupabaseClient() {
   try {
     const savedKey = await AsyncStorage.getItem(STORAGE_KEY_CUSTOM_ANON);
     if (savedKey && savedKey.trim().length > 10) {
       activeAnonKey = savedKey.trim();
-      supabase = createClient(SUPABASE_URL, activeAnonKey, {
-        auth: {
-          storage: safeStorageAdapter,
-          autoRefreshToken: true,
-          persistSession: true,
-          detectSessionInUrl: false
-        }
-      });
+      supabase = buildClient(activeAnonKey);
       return { initialized: true, key: activeAnonKey };
     }
   } catch (err) {
@@ -67,7 +65,7 @@ export async function initializeSupabaseClient() {
   }
   return { initialized: false, key: activeAnonKey };
 }
-
+ 
 // Guardar nueva clave de Supabase
 export async function saveSupabaseAnonKey(newKey) {
   const clean = String(newKey).trim();
@@ -76,23 +74,16 @@ export async function saveSupabaseAnonKey(newKey) {
     activeAnonKey = '';
     return { success: false, message: 'La clave no puede estar vacía' };
   }
-
+ 
   activeAnonKey = clean;
   await AsyncStorage.setItem(STORAGE_KEY_CUSTOM_ANON, clean);
-
-  supabase = createClient(SUPABASE_URL, activeAnonKey, {
-    auth: {
-      storage: safeStorageAdapter,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false
-    }
-  });
-
+ 
+  supabase = buildClient(activeAnonKey);
+ 
   // Validar conexión real
   return await testSupabaseConnection(clean);
 }
-
+ 
 // Probar conexión real a la API de Supabase
 export async function testSupabaseConnection(keyToTest = activeAnonKey) {
   const testKey = keyToTest || activeAnonKey;
@@ -103,7 +94,7 @@ export async function testSupabaseConnection(keyToTest = activeAnonKey) {
       projectRef: SUPABASE_PROJECT_REF
     };
   }
-
+ 
   const start = Date.now();
   try {
     const response = await fetch(`${SUPABASE_URL}/auth/v1/settings`, {
@@ -113,9 +104,9 @@ export async function testSupabaseConnection(keyToTest = activeAnonKey) {
         Authorization: `Bearer ${testKey}`
       }
     });
-
+ 
     const elapsed = Date.now() - start;
-
+ 
     if (response.status === 200) {
       return {
         connected: true,
@@ -145,7 +136,7 @@ export async function testSupabaseConnection(keyToTest = activeAnonKey) {
     };
   }
 }
-
+ 
 export function getActiveAnonKey() {
   return activeAnonKey;
 }

@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
-
+import { Role } from '../constants/statuses';
+ 
 export default function Header({ currentUser, onPressProfile }) {
-  const role = currentUser?.role || 'client';
+  const role = currentUser?.role || Role.CLIENT;
   const firstName = currentUser?.name ? currentUser.name.split(' ')[0] : 'Usuario';
-  const roleLabel = role === 'admin' ? `Admin • ${firstName}` : role === 'professional' ? `Técnico • ${firstName}` : `Cliente • ${firstName}`;
-  const roleIcon = role === 'admin' ? 'shield-checkmark' : role === 'professional' ? 'construct' : 'person';
-
+  const roleLabel = role === Role.ADMIN ? `Admin • ${firstName}` : role === Role.PROFESSIONAL ? `Técnico • ${firstName}` : `Cliente • ${firstName}`;
+  const roleIcon = role === Role.ADMIN ? 'shield-checkmark' : role === Role.PROFESSIONAL ? 'construct' : 'person';
+ 
   return (
     <View style={styles.safeArea}>
       <View style={styles.container}>
@@ -22,21 +23,21 @@ export default function Header({ currentUser, onPressProfile }) {
               <Text style={styles.cityName}>Medellín • Valle de Aburrá</Text>
             </View>
           </View>
-
+ 
           <TouchableOpacity
-            style={[styles.roleChip, role === 'admin' && styles.roleChipAdmin]}
+            style={[styles.roleChip, role === Role.ADMIN && styles.roleChipAdmin]}
             onPress={onPressProfile}
             activeOpacity={0.8}
           >
             <Ionicons
               name={roleIcon}
               size={13}
-              color={role === 'admin' ? '#ffffff' : THEME.colors.primary}
+              color={role === Role.ADMIN ? '#ffffff' : THEME.colors.primary}
             />
             <Text
               style={[
                 styles.roleText,
-                role === 'admin' && styles.roleTextAdmin
+                role === Role.ADMIN && styles.roleTextAdmin
               ]}
               numberOfLines={1}
             >
@@ -48,7 +49,7 @@ export default function Header({ currentUser, onPressProfile }) {
     </View>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: '#ffffff'

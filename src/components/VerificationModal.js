@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
+import { ProStatus } from '../constants/statuses';
 import { uploadVerificationDocument } from '../services/databaseService';
-
+ 
 export default function VerificationModal({
   visible,
   onClose,
@@ -29,12 +30,12 @@ export default function VerificationModal({
   const [docInputText, setDocInputText] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);
-
+ 
   if (!dossier) return null;
-
+ 
   const documents = activeDossier?.documents || dossier.documents || [];
-  const status = activeDossier?.status || dossier.status || 'pending';
-
+  const status = activeDossier?.status || dossier.status || ProStatus.PENDING;
+ 
   const handleSimulateUpload = async (doc) => {
     Alert.alert(
       `Cargar ${doc.title}`,
@@ -52,7 +53,7 @@ export default function VerificationModal({
       ]
     );
   };
-
+ 
   const processUpload = async (docId, sampleNumber) => {
     await uploadVerificationDocument(dossier.professionalId || 'usr_pro_4', docId, sampleNumber);
     // Actualizar estado local
@@ -68,7 +69,7 @@ export default function VerificationModal({
       'El documento ha sido cargado exitosamente y pasó a estado "En Revisión" por el equipo de auditoría.'
     );
   };
-
+ 
   const getStatusBadge = (docStatus) => {
     switch (docStatus) {
       case 'approved':
@@ -101,10 +102,10 @@ export default function VerificationModal({
         };
     }
   };
-
+ 
   const approvedCount = documents.filter(d => d.status === 'approved').length;
   const progressPercent = Math.round((approvedCount / (documents.length || 1)) * 100);
-
+ 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
@@ -113,7 +114,7 @@ export default function VerificationModal({
       >
         <View style={styles.sheet}>
           <View style={styles.handle} />
-
+ 
           {/* Encabezado */}
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
@@ -127,7 +128,7 @@ export default function VerificationModal({
               <Ionicons name="close" size={22} color={THEME.colors.textMuted} />
             </TouchableOpacity>
           </View>
-
+ 
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.content}
@@ -138,8 +139,8 @@ export default function VerificationModal({
               <View style={styles.statusHeader}>
                 <View>
                   <Text style={styles.statusLabel}>Estado General del Profesional:</Text>
-                  <Text style={[styles.statusValue, status === 'verified' ? styles.statusVerified : styles.statusPending]}>
-                    {status === 'verified' ? '✓ PROFESIONAL VERIFICADO' : '⏳ EN PROCESO DE AUDITORÍA'}
+                  <Text style={[styles.statusValue, status === ProStatus.VERIFIED ? styles.statusVerified : styles.statusPending]}>
+                    {status === ProStatus.VERIFIED ? '✓ PROFESIONAL VERIFICADO' : '⏳ EN PROCESO DE AUDITORÍA'}
                   </Text>
                 </View>
                 <View style={styles.progressCircle}>
@@ -147,16 +148,16 @@ export default function VerificationModal({
                   <Text style={styles.progressSub}>Validado</Text>
                 </View>
               </View>
-
+ 
               {/* Barra de progreso */}
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
               </View>
-
+ 
               <Text style={styles.progressDetail}>
                 {approvedCount} de {documents.length} documentos acreditados bajo la normativa colombiana (Ley 1264 de 2008 / RETIE / MinTrabajo).
               </Text>
-
+ 
               {dossier.verifiedAt && (
                 <View style={styles.verifiedMetaRow}>
                   <Ionicons name="ribbon" size={14} color="#15803d" />
@@ -166,10 +167,10 @@ export default function VerificationModal({
                 </View>
               )}
             </View>
-
+ 
             {/* Listado de Documentos del Expediente */}
             <Text style={styles.sectionTitle}>Documentos Requeridos para Verificación:</Text>
-
+ 
             {documents.map((doc, idx) => {
               const badge = getStatusBadge(doc.status);
               return (
@@ -197,14 +198,14 @@ export default function VerificationModal({
                       <Text style={styles.docNumber}>Ref / Código: {doc.number || 'Pendiente de radicación'}</Text>
                     </View>
                   </View>
-
+ 
                   <View style={styles.docBody}>
                     <Text style={styles.docNote}>{doc.note || 'Documento oficial en custodia segura.'}</Text>
                     {doc.expiry && (
                       <Text style={styles.docExpiry}>Vigencia: {doc.expiry}</Text>
                     )}
                   </View>
-
+ 
                   {/* Acciones para el Técnico */}
                   {!isAuditor && doc.status !== 'approved' && (
                     <TouchableOpacity
@@ -219,15 +220,15 @@ export default function VerificationModal({
                 </View>
               );
             })}
-
+ 
             {/* Acciones si el usuario es Auditor (HU03) */}
-            {isAuditor && status !== 'verified' && (
+            {isAuditor && status !== ProStatus.VERIFIED && (
               <View style={styles.auditorBox}>
                 <Text style={styles.auditorTitle}>Acciones de Auditor de Seguridad UdeA:</Text>
                 <Text style={styles.auditorDesc}>
                   Como auditor autorizado, valida si los soportes presentados cumplen con autenticidad y antecedentes antes de habilitar al técnico.
                 </Text>
-
+ 
                 {showRejectInput ? (
                   <View style={styles.rejectContainer}>
                     <Text style={styles.rejectLabel}>Motivo del Rechazo de Documentos:</Text>
@@ -273,7 +274,7 @@ export default function VerificationModal({
                       <Ionicons name="checkmark-done-circle" size={18} color="#ffffff" />
                       <Text style={styles.approveFullText}>Aprobar y Certificar Técnico</Text>
                     </TouchableOpacity>
-
+ 
                     <TouchableOpacity
                       style={styles.rejectFullBtn}
                       onPress={() => setShowRejectInput(true)}
@@ -292,7 +293,7 @@ export default function VerificationModal({
     </Modal>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,

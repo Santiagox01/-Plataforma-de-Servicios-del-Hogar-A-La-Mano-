@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
-
+import { ProStatus } from '../constants/statuses';
+ 
 export default function ProfessionalCard({ professional, onOpenDetail, onOpenBooking, onSelect, onBook }) {
-  const isVerified = professional.status === 'verified';
+  const isVerified = professional.status === ProStatus.VERIFIED;
   const handleDetail = () => (onOpenDetail || onSelect)?.(professional);
   const handleBook = () => (onOpenBooking || onBook)?.(professional);
-
+ 
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -21,7 +22,7 @@ export default function ProfessionalCard({ professional, onOpenDetail, onOpenBoo
             <Text style={styles.reviewCount}>({professional.reviewCount} reseñas)</Text>
           </View>
         </View>
-
+ 
         <View style={[styles.statusBadge, isVerified ? styles.statusBadgeVerified : styles.statusBadgePending]}>
           <View style={[styles.statusDot, { backgroundColor: isVerified ? THEME.colors.verified : THEME.colors.pending }]} />
           <Text style={[styles.statusText, { color: isVerified ? THEME.colors.verified : THEME.colors.pending }]}>
@@ -29,7 +30,7 @@ export default function ProfessionalCard({ professional, onOpenDetail, onOpenBoo
           </Text>
         </View>
       </View>
-
+ 
       <View style={styles.chipsRow}>
         <View style={styles.chip}>
           <Ionicons name="location" size={12} color={THEME.colors.primary} />
@@ -40,7 +41,7 @@ export default function ProfessionalCard({ professional, onOpenDetail, onOpenBoo
           <Text style={styles.urgentChipText}>Atiende Urgencias</Text>
         </View>
       </View>
-
+ 
       <View style={styles.footerRow}>
         <View>
           <Text style={styles.rateLabel}>Tarifa base desde</Text>
@@ -49,7 +50,7 @@ export default function ProfessionalCard({ professional, onOpenDetail, onOpenBoo
             <Text style={styles.rateUnit}> / hora</Text>
           </Text>
         </View>
-
+ 
         <View style={styles.actionsRow}>
           <TouchableOpacity style={styles.btnSecondary} onPress={handleDetail}>
             <Text style={styles.btnSecondaryText}>Ver Perfil</Text>
@@ -62,7 +63,7 @@ export default function ProfessionalCard({ professional, onOpenDetail, onOpenBoo
     </View>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',

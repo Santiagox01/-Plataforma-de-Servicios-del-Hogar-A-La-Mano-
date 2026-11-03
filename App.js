@@ -13,7 +13,11 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from './src/constants/theme';
-import { INITIAL_CATEGORIES, INITIAL_SERVICES } from './src/data/mockData';
+import { Role, ProStatus, ServiceStatus, EscrowStatus } from './src/constants/statuses';
+import { AVATARS } from './src/constants/config';
+import { useServices } from './src/hooks/useServices';
+import { filterProfessionals } from './src/services/professionalFilter';
+import { INITIAL_CATEGORIES } from './src/data/mockData';
 import Header from './src/components/Header';
 import ProfessionalCard from './src/components/ProfessionalCard';
 import BookingModal from './src/components/BookingModal';
@@ -23,11 +27,10 @@ import AuthModal from './src/components/AuthModal';
 import VerificationModal from './src/components/VerificationModal';
 import SupabaseConfigModal from './src/components/SupabaseConfigModal';
 import ChatModal from './src/components/ChatModal';
-
+ 
 import { getLocalUser, setLocalUser, logoutUser, DEMO_USERS } from './src/services/authService';
 import {
   fetchProfessionals,
-  createServiceOrder,
   fetchVerificationDossier,
   updateProfessionalStatus
 } from './src/services/databaseService';
@@ -36,37 +39,37 @@ import {
   initializeSupabaseClient,
   SUPABASE_PROJECT_REF
 } from './src/services/supabase';
-
+ 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(DEMO_USERS.client);
   const [activeTab, setActiveTab] = useState('explore'); // 'explore' | 'services' | 'messages' | 'profile'
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedZone, setSelectedZone] = useState('Todas');
   const [searchQuery, setSearchQuery] = useState('');
-
+ 
   const [professionals, setProfessionals] = useState([]);
-  const [services, setServices] = useState(INITIAL_SERVICES);
-
+  const { services, requestService, releasePayment } = useServices(currentUser);
+ 
   // Modals state
   const [authModalVisible, setAuthModalVisible] = useState(false);
   const [supabaseModalVisible, setSupabaseModalVisible] = useState(false);
   const [selectedProForDetail, setSelectedProForDetail] = useState(null);
   const [selectedProForBooking, setSelectedProForBooking] = useState(null);
-
+ 
   // Chat state
   const [chatModalVisible, setChatModalVisible] = useState(false);
   const [selectedProForChat, setSelectedProForChat] = useState(null);
   const [selectedServiceForChat, setSelectedServiceForChat] = useState('SRV-2026-01');
-
+ 
   // Identity Verification state (Validación Documental)
   const [verificationModalVisible, setVerificationModalVisible] = useState(false);
   const [activeDossier, setActiveDossier] = useState(null);
   const [dossierProName, setDossierProName] = useState('');
   const [isAuditorModeForDossier, setIsAuditorModeForDossier] = useState(false);
-
+ 
   // Supabase connection state
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(false);
-
+ 
   useEffect(() => {
     // Inicializar sesión y cargar datos de base de datos
     (async () => {
@@ -75,10 +78,10 @@ export default function App() {
         const init = await initializeSupabaseClient();
         const testRes = await testSupabaseConnection(init.key);
         setIsSupabaseConnected(testRes.connected);
-
+ 
         const user = await getLocalUser();
         if (user) setCurrentUser(user);
-
+ 
         const pros = await fetchProfessionals();
         setProfessionals(pros);
       } catch (err) {
@@ -86,110 +89,75 @@ export default function App() {
       }
     })();
   }, []);
-
+ 
   // Abrir chat interactivo con un profesional
   const handleOpenChat = (pro, serviceId = 'SRV-2026-01') => {
     setSelectedProForChat(pro || {
       id: 'usr_pro_1',
       name: 'Carlos Mario Restrepo',
       specialtyName: 'Electricista Residencial e Industrial',
-      avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=180&auto=format&fit=crop&q=80'
+      avatar: AVATARS.professional
     });
     setSelectedServiceForChat(serviceId);
     setChatModalVisible(true);
   };
-
-  // Filtrado de técnicos
-  const filteredProfessionals = professionals.filter(pro => {
-    if (currentUser.role === 'client' && pro.status !== 'verified') return false;
-
-    if (selectedCategory !== 'all' && !pro.categories.includes(selectedCategory)) {
-      return false;
-    }
-    if (selectedZone !== 'Todas' && pro.zone !== selectedZone) {
-      return false;
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return (
-        pro.name.toLowerCase().includes(q) ||
-        pro.specialtyName.toLowerCase().includes(q) ||
-        pro.zone.toLowerCase().includes(q)
-      );
-    }
-    return true;
+ 
+  // Filtrado de técnicos (la lógica vive en professionalFilter.js)
+  const filteredProfessionals = filterProfessionals(professionals, {
+    user: currentUser,
+    category: selectedCategory,
+    zone: selectedZone,
+    query: searchQuery
   });
-
+ 
   // Contratar y solicitar servicio técnico con pago protegido
   const handleConfirmBooking = async (bookingData) => {
     try {
-      const newService = {
-        id: `SRV-2026-${(services.length + 1).toString().padStart(2, '0')}`,
-        clientId: currentUser.id,
-        proId: bookingData.proId,
-        proName: bookingData.proName,
-        proSpecialty: bookingData.proSpecialty,
-        description: bookingData.description,
-        address: bookingData.address,
-        status: 'EN CAMINO',
-        totalAmount: bookingData.pricing.totalAmount,
-        escrowStatus: 'Protegido',
-        isUrgent: bookingData.isUrgent,
-        scheduledAt: 'Hoy, Inmediato'
-      };
-
-      setServices(prev => [newService, ...prev]);
+      await requestService(bookingData);
+ 
       setSelectedProForBooking(null);
       setActiveTab('services');
-
+ 
       Alert.alert(
         '¡Servicio Solicitado con Éxito!',
         `Tu solicitud a ${bookingData.proName} ha sido confirmada por ${bookingData.pricing.formattedTotal}. Tu pago permanece 100% protegido hasta que verifiques que el servicio quedó a satisfacción.`
       );
-
-      createServiceOrder({
-        ...bookingData,
-        clientId: currentUser.id
-      }).catch(err => console.log('DB sync:', err));
     } catch (err) {
       console.warn('Booking confirmed locally:', err);
     }
   };
-
-  // Administrador aprueba técnico (HU03)
-  const handleApprovePro = async (proId) => {
-    await updateProfessionalStatus(proId, 'verified', null, currentUser.name);
+ 
+  // Cambia el estado de un técnico (lógica común de aprobar y rechazar)
+  const applyProStatus = async (proId, status, reason = null, patch = {}) => {
+    await updateProfessionalStatus(proId, status, reason, currentUser.name);
     setProfessionals(prev =>
-      prev.map(p => (p.id === proId ? { ...p, status: 'verified', rating: 5.0, reviewCount: 1 } : p))
+      prev.map(p => (p.id === proId ? { ...p, status, ...patch } : p))
     );
     if (currentUser.id === proId) {
-      const updated = { ...currentUser, status: 'verified' };
+      const updated = { ...currentUser, status };
       setCurrentUser(updated);
       setLocalUser(updated);
     }
+  };
+ 
+  // Administrador aprueba técnico (HU03)
+  const handleApprovePro = async (proId) => {
+    await applyProStatus(proId, ProStatus.VERIFIED, null, { rating: 5.0, reviewCount: 1 });
     Alert.alert(
       'Técnico Acreditado con Éxito',
       'Matrícula y antecedentes penales validados. El técnico ahora está 100% visible en el catálogo de clientes.'
     );
   };
-
+ 
   // Administrador rechaza técnico con observaciones (HU03)
   const handleRejectPro = async (proId, reason) => {
-    await updateProfessionalStatus(proId, 'rejected', reason, currentUser.name);
-    setProfessionals(prev =>
-      prev.map(p => (p.id === proId ? { ...p, status: 'rejected' } : p))
-    );
-    if (currentUser.id === proId) {
-      const updated = { ...currentUser, status: 'rejected' };
-      setCurrentUser(updated);
-      setLocalUser(updated);
-    }
+    await applyProStatus(proId, ProStatus.REJECTED, reason);
     Alert.alert(
       'Expediente Notificado con Observaciones',
       `Se notificó al técnico para subsanar documentos:\n"${reason || 'Documento no legible o no vigente'}"`
     );
   };
-
+ 
   // Abrir expediente de verificación
   const handleOpenVerificationDossier = async (pro, isAuditor = false) => {
     const dossier = await fetchVerificationDossier(pro.id);
@@ -198,7 +166,7 @@ export default function App() {
     setIsAuditorModeForDossier(isAuditor);
     setVerificationModalVisible(true);
   };
-
+ 
   // Vistas de pestañas
   const renderExploreTab = () => (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.tabContent}>
@@ -218,7 +186,7 @@ export default function App() {
           </TouchableOpacity>
         )}
       </View>
-
+ 
       {/* Trust Banner */}
       <View style={styles.trustBanner}>
         <View style={styles.trustIcon}>
@@ -229,7 +197,7 @@ export default function App() {
           <Text style={styles.trustSub}>Cédula colombiana, antecedentes PONAL y matrículas CONTE/EPM.</Text>
         </View>
       </View>
-
+ 
       {/* Comunas Filter */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Comunas de Medellín</Text>
@@ -246,7 +214,7 @@ export default function App() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
+ 
       {/* Categories */}
       <Text style={styles.sectionTitle}>Categorías de Servicio</Text>
       <View style={styles.categoriesGrid}>
@@ -273,13 +241,13 @@ export default function App() {
           );
         })}
       </View>
-
+ 
       {/* Technicians List */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Técnicos Disponibles en Medellín</Text>
         <Text style={styles.countBadge}>{filteredProfessionals.length} verificados</Text>
       </View>
-
+ 
       {filteredProfessionals.length === 0 ? (
         <View style={styles.emptyCard}>
           <Ionicons name="search-outline" size={36} color={THEME.colors.textLight} />
@@ -300,12 +268,12 @@ export default function App() {
       )}
     </ScrollView>
   );
-
+ 
   const renderServicesTab = () => (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.tabContent}>
       <Text style={styles.sectionTitle}>Mis Solicitudes y Servicios</Text>
       <Text style={styles.sectionSub}>Garantía A La Mano: tu dinero permanece protegido hasta tu visto bueno.</Text>
-
+ 
       {services.map(srv => (
         <View key={srv.id} style={styles.serviceCard}>
           <View style={styles.srvTopRow}>
@@ -318,7 +286,7 @@ export default function App() {
               <Text style={styles.statusBadgeText}>{srv.status}</Text>
             </View>
           </View>
-
+ 
           <View style={styles.srvDetailBox}>
             <Text style={styles.srvDesc}>{srv.description}</Text>
             <View style={styles.srvMetaRow}>
@@ -326,22 +294,22 @@ export default function App() {
               <Text style={styles.srvAddress}>{srv.address}</Text>
             </View>
           </View>
-
+ 
           <View style={styles.srvFooterRow}>
             <View>
               <Text style={styles.escrowLabel}>Protección de Pago:</Text>
               <View style={styles.escrowBadge}>
                 <Ionicons name="shield-checkmark" size={12} color="#0284c7" />
-                <Text style={styles.escrowVal}>{srv.escrowStatus || 'Protegido'}</Text>
+                <Text style={styles.escrowVal}>{srv.escrowStatus || EscrowStatus.PROTEGIDO}</Text>
               </View>
             </View>
-
+ 
             <View style={{ alignItems: 'flex-end' }}>
               <Text style={styles.totalLabel}>Monto Protegido:</Text>
               <Text style={styles.totalVal}>${Number(srv.totalAmount).toLocaleString('es-CO')} COP</Text>
             </View>
           </View>
-
+ 
           {/* Botón Chatear con el Técnico */}
           <TouchableOpacity
             style={styles.chatActionBtn}
@@ -354,8 +322,8 @@ export default function App() {
             <Ionicons name="chatbubbles" size={15} color={THEME.colors.primary} />
             <Text style={styles.chatActionBtnText}>Chatear con el Técnico</Text>
           </TouchableOpacity>
-
-          {srv.status === 'EN CAMINO' && (
+ 
+          {srv.status === ServiceStatus.EN_CAMINO && (
             <TouchableOpacity
               style={styles.confirmReleaseBtn}
               onPress={() => {
@@ -367,7 +335,7 @@ export default function App() {
                     {
                       text: 'Sí, Entregar Pago',
                       onPress: () => {
-                        setServices(services.map(s => s.id === srv.id ? { ...s, status: 'FINALIZADO', escrowStatus: 'Liberado' } : s));
+                        releasePayment(srv.id);
                         Alert.alert('Pago Entregado', '¡Gracias por confiar en A La Mano! El dinero fue transferido.');
                       }
                     }
@@ -384,7 +352,7 @@ export default function App() {
       ))}
     </ScrollView>
   );
-
+ 
   const renderMessagesTab = () => {
     const conversations = [
       {
@@ -393,7 +361,7 @@ export default function App() {
           id: 'usr_pro_1',
           name: 'Carlos Mario Restrepo',
           specialtyName: 'Electricista Residencial',
-          avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150'
+          avatar: AVATARS.professional
         },
         serviceCode: 'SRV-2026-01',
         lastMessage: 'Estoy cruzando la 80 hacia su sector, calculo unos 12 a 15 minutos máximo.',
@@ -406,7 +374,7 @@ export default function App() {
           id: 'usr_pro_2',
           name: 'Diego Alejandro Ospina',
           specialtyName: 'Maestro Plomero',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+          avatar: AVATARS.professional
         },
         serviceCode: 'SRV-2026-02',
         lastMessage: 'Perfecto doña Juanita, llevo la tubería de repuesto y el soplete.',
@@ -414,12 +382,12 @@ export default function App() {
         unread: false
       }
     ];
-
+ 
     return (
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.tabContent}>
         <Text style={styles.sectionTitle}>Mensajes y Coordinación</Text>
         <Text style={styles.sectionSub}>Chat directo y seguro con técnicos asignados a tus servicios.</Text>
-
+ 
         {conversations.map(conv => (
           <TouchableOpacity
             key={conv.id}
@@ -434,7 +402,7 @@ export default function App() {
               />
               <View style={styles.chatOnlineDot} />
             </View>
-
+ 
             <View style={{ flex: 1 }}>
               <View style={styles.chatHeaderRow}>
                 <Text style={styles.chatName}>{conv.pro.name}</Text>
@@ -445,7 +413,7 @@ export default function App() {
                 "{conv.lastMessage}"
               </Text>
             </View>
-
+ 
             <View style={styles.chatChevronCol}>
               {conv.unread && <View style={styles.unreadBadge} />}
               <Ionicons name="chevron-forward" size={18} color={THEME.colors.textLight} />
@@ -455,10 +423,10 @@ export default function App() {
       </ScrollView>
     );
   };
-
+ 
   const renderProfileTab = () => (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.tabContent}>
-      {currentUser.role === 'admin' ? (
+      {currentUser.role === Role.ADMIN ? (
         <View>
           {/* Header Admin */}
           <View style={styles.adminHeaderBox}>
@@ -468,17 +436,17 @@ export default function App() {
               <Text style={styles.adminSub}>Aprobación de Técnicos, Validación de Cédulas y Matrículas CONTE</Text>
             </View>
           </View>
-
+ 
           {/* Lista de Técnicos para Auditoría */}
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Solicitudes de Ingreso Técnico</Text>
             <Text style={styles.countBadge}>
-              {professionals.filter(p => p.status === 'pending').length} pendientes
+              {professionals.filter(p => p.status === ProStatus.PENDING).length} pendientes
             </Text>
           </View>
-
+ 
           {professionals
-            .filter(p => p.status === 'pending')
+            .filter(p => p.status === ProStatus.PENDING)
             .map(p => (
               <AdminAuditCard
                 key={p.id}
@@ -488,19 +456,19 @@ export default function App() {
                 onInspect={() => handleOpenVerificationDossier(p, true)}
               />
             ))}
-
-          {professionals.filter(p => p.status === 'pending').length === 0 && (
+ 
+          {professionals.filter(p => p.status === ProStatus.PENDING).length === 0 && (
             <View style={styles.emptyCard}>
               <Ionicons name="checkmark-done-circle" size={36} color={THEME.colors.verified} />
               <Text style={styles.emptyTitle}>¡Todo al día! No hay técnicos pendientes</Text>
               <Text style={styles.emptySub}>Todos los expedientes de matrícula y cédulas han sido validados.</Text>
             </View>
           )}
-
+ 
           {/* Técnicos Ya Verificados */}
           <Text style={[styles.sectionTitle, { marginTop: 16 }]}>Técnicos Ya Acreditados</Text>
           {professionals
-            .filter(p => p.status === 'verified')
+            .filter(p => p.status === ProStatus.VERIFIED)
             .map(p => (
               <AdminAuditCard
                 key={p.id}
@@ -521,39 +489,39 @@ export default function App() {
           </View>
           <Text style={styles.profileName}>{currentUser.name}</Text>
           <Text style={styles.profileRole}>
-            {currentUser.role === 'professional' ? 'Técnico Especialista' : 'Cliente Verificado'} • {currentUser.zone}, Medellín
+            {currentUser.role === Role.PROFESSIONAL ? 'Técnico Especialista' : 'Cliente Verificado'} • {currentUser.zone}, Medellín
           </Text>
           <Text style={styles.profileEmail}>{currentUser.email} • {currentUser.phone}</Text>
-
+ 
           {/* BANNER DE VERIFICACIÓN DE IDENTIDAD SI ES TÉCNICO (HU02) */}
-          {currentUser.role === 'professional' && (
+          {currentUser.role === Role.PROFESSIONAL && (
             <View style={[
               styles.verificationCard,
-              currentUser.status === 'verified' ? styles.verificationCardVerified : styles.verificationCardPending
+              currentUser.status === ProStatus.VERIFIED ? styles.verificationCardVerified : styles.verificationCardPending
             ]}>
               <View style={styles.verifHeaderRow}>
                 <Ionicons
-                  name={currentUser.status === 'verified' ? 'shield-checkmark' : 'alert-circle'}
+                  name={currentUser.status === ProStatus.VERIFIED ? 'shield-checkmark' : 'alert-circle'}
                   size={22}
-                  color={currentUser.status === 'verified' ? '#15803d' : '#b45309'}
+                  color={currentUser.status === ProStatus.VERIFIED ? '#15803d' : '#b45309'}
                 />
                 <View style={{ flex: 1 }}>
                   <Text style={[
                     styles.verifTitle,
-                    currentUser.status === 'verified' ? styles.verifTitleVerified : styles.verifTitlePending
+                    currentUser.status === ProStatus.VERIFIED ? styles.verifTitleVerified : styles.verifTitlePending
                   ]}>
-                    {currentUser.status === 'verified'
+                    {currentUser.status === ProStatus.VERIFIED
                       ? '✓ Técnico Acreditado y Verificado'
                       : '⏳ Expediente en Proceso de Verificación'}
                   </Text>
                   <Text style={styles.verifSub}>
-                    {currentUser.status === 'verified'
+                    {currentUser.status === ProStatus.VERIFIED
                       ? 'Cédula, Antecedentes PONAL y Matrícula CONTE validados exitosamente.'
                       : 'Tus documentos están radicados y en proceso de validación por auditoría UdeA.'}
                   </Text>
                 </View>
               </View>
-
+ 
               <TouchableOpacity
                 style={styles.verifActionBtn}
                 onPress={() => handleOpenVerificationDossier(currentUser, false)}
@@ -561,12 +529,12 @@ export default function App() {
               >
                 <Ionicons name="document-text" size={15} color={THEME.colors.primary} />
                 <Text style={styles.verifActionText}>
-                  {currentUser.status === 'verified' ? 'Ver Mi Expediente de Acreditación' : 'Gestionar y Subir Documentos'}
+                  {currentUser.status === ProStatus.VERIFIED ? 'Ver Mi Expediente de Acreditación' : 'Gestionar y Subir Documentos'}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
-
+ 
           {/* Opciones del Menú */}
           <View style={styles.profileMenu}>
             <TouchableOpacity style={styles.menuRow} onPress={() => setAuthModalVisible(true)}>
@@ -574,13 +542,13 @@ export default function App() {
               <Text style={styles.menuText}>Iniciar Sesión o Crear Nueva Cuenta</Text>
               <Ionicons name="chevron-forward" size={16} color={THEME.colors.textLight} />
             </TouchableOpacity>
-
+ 
             <TouchableOpacity style={styles.menuRow} onPress={() => setActiveTab('services')}>
               <Ionicons name="receipt" size={18} color={THEME.colors.primary} />
               <Text style={styles.menuText}>Historial de Servicios Contratados</Text>
               <Ionicons name="chevron-forward" size={16} color={THEME.colors.textLight} />
             </TouchableOpacity>
-
+ 
             <TouchableOpacity
               style={styles.menuRow}
               onPress={() => Alert.alert('Garantía A La Mano', 'Pago Protegido: Tu dinero se retiene de forma 100% segura y solo se entrega al técnico una vez que confirmes que el servicio fue realizado a entera satisfacción.')}
@@ -589,7 +557,7 @@ export default function App() {
               <Text style={styles.menuText}>Póliza de Garantía del Hogar</Text>
               <Ionicons name="chevron-forward" size={16} color={THEME.colors.textLight} />
             </TouchableOpacity>
-
+ 
             <TouchableOpacity
               style={styles.menuRow}
               onPress={() => Alert.alert('Habeas Data', 'Datos protegidos bajo la Ley 1581 de 2012 de Colombia.')}
@@ -599,7 +567,7 @@ export default function App() {
               <Ionicons name="chevron-forward" size={16} color={THEME.colors.textLight} />
             </TouchableOpacity>
           </View>
-
+ 
           {/* Cerrar Sesión */}
           <TouchableOpacity
             style={styles.logoutBtn}
@@ -616,7 +584,7 @@ export default function App() {
       )}
     </ScrollView>
   );
-
+ 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeContainer} edges={['top', 'left', 'right']}>
@@ -625,14 +593,14 @@ export default function App() {
           currentUser={currentUser}
           onPressProfile={() => setActiveTab('profile')}
         />
-
+ 
         <View style={styles.mainContainer}>
           {activeTab === 'explore' && renderExploreTab()}
           {activeTab === 'services' && renderServicesTab()}
           {activeTab === 'messages' && renderMessagesTab()}
           {activeTab === 'profile' && renderProfileTab()}
         </View>
-
+ 
         {/* Bottom Tabs */}
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('explore')}>
@@ -643,7 +611,7 @@ export default function App() {
             />
             <Text style={[styles.navLabel, activeTab === 'explore' && styles.navLabelActive]}>Explorar</Text>
           </TouchableOpacity>
-
+ 
           <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('services')}>
             <Ionicons
               name={activeTab === 'services' ? 'receipt' : 'receipt-outline'}
@@ -652,7 +620,7 @@ export default function App() {
             />
             <Text style={[styles.navLabel, activeTab === 'services' && styles.navLabelActive]}>Solicitudes</Text>
           </TouchableOpacity>
-
+ 
           <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('messages')}>
             <Ionicons
               name={activeTab === 'messages' ? 'chatbubbles' : 'chatbubbles-outline'}
@@ -661,7 +629,7 @@ export default function App() {
             />
             <Text style={[styles.navLabel, activeTab === 'messages' && styles.navLabelActive]}>Mensajes</Text>
           </TouchableOpacity>
-
+ 
           <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('profile')}>
             <Ionicons
               name={activeTab === 'profile' ? 'person' : 'person-outline'}
@@ -671,7 +639,7 @@ export default function App() {
             <Text style={[styles.navLabel, activeTab === 'profile' && styles.navLabelActive]}>Perfil</Text>
           </TouchableOpacity>
         </View>
-
+ 
         {/* Modals */}
         <BookingModal
           visible={!!selectedProForBooking}
@@ -679,24 +647,24 @@ export default function App() {
           onClose={() => setSelectedProForBooking(null)}
           onConfirmBooking={handleConfirmBooking}
         />
-
+ 
         <ProDetailModal
           visible={!!selectedProForDetail}
           professional={selectedProForDetail}
           onClose={() => setSelectedProForDetail(null)}
           onOpenBooking={setSelectedProForBooking}
         />
-
+ 
         <AuthModal
           visible={authModalVisible}
           onClose={() => setAuthModalVisible(false)}
           onAuthSuccess={(user) => {
             setCurrentUser(user);
-            if (user.role === 'admin') setActiveTab('profile');
+            if (user.role === Role.ADMIN) setActiveTab('profile');
             else setActiveTab('explore');
           }}
         />
-
+ 
         <VerificationModal
           visible={verificationModalVisible}
           onClose={() => setVerificationModalVisible(false)}
@@ -706,7 +674,7 @@ export default function App() {
           onApproveDossier={(proId) => handleApprovePro(proId)}
           onRejectDossier={(proId, reason) => handleRejectPro(proId, reason)}
         />
-
+ 
         <ChatModal
           visible={chatModalVisible}
           pro={selectedProForChat}
@@ -717,7 +685,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,

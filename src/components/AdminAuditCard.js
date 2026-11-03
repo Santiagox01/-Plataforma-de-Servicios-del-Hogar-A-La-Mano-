@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
-
+import { ProStatus } from '../constants/statuses';
+ 
 export default function AdminAuditCard({ professional, onApprove, onReject, onInspect }) {
-  const isVerified = professional.status === 'verified';
-  const isRejected = professional.status === 'rejected';
-
+  const isVerified = professional.status === ProStatus.VERIFIED;
+  const isRejected = professional.status === ProStatus.REJECTED;
+ 
   return (
     <View style={[styles.card, isVerified && styles.cardVerified, isRejected && styles.cardRejected]}>
       <View style={styles.cardHeader}>
@@ -35,7 +36,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
           <Text style={styles.zone}>{professional.zone}, Medellín</Text>
         </View>
       </View>
-
+ 
       {/* Resumen de Documentos Radicados */}
       <View style={styles.docBox}>
         <View style={styles.docRow}>
@@ -45,7 +46,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
           </View>
           <Text style={styles.docVal}>{professional.ccNumber || '1.036.711.592'}</Text>
         </View>
-
+ 
         <View style={styles.docRow}>
           <View style={styles.docItemLeft}>
             <Ionicons name="shield-checkmark" size={13} color="#15803d" />
@@ -53,7 +54,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
           </View>
           <Text style={[styles.docVal, { color: '#15803d' }]}>Sin Anotaciones Penales</Text>
         </View>
-
+ 
         <View style={styles.docRow}>
           <View style={styles.docItemLeft}>
             <Ionicons name="school" size={13} color="#0284c7" />
@@ -62,7 +63,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
           <Text style={styles.docVal}>{professional.conteReg || 'Acreditación SENA Radicada'}</Text>
         </View>
       </View>
-
+ 
       {/* Botón para examinar expediente completo */}
       <TouchableOpacity
         style={styles.inspectBtn}
@@ -72,7 +73,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
         <Ionicons name="document-text-outline" size={15} color={THEME.colors.primary} />
         <Text style={styles.inspectText}>Examinar Expediente Completo y Fotos</Text>
       </TouchableOpacity>
-
+ 
       {/* Acciones de Auditoría */}
       {!isVerified && (
         <View style={styles.actionsRow}>
@@ -84,7 +85,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
             <Ionicons name="checkmark-circle" size={16} color="#ffffff" />
             <Text style={styles.approveText}>Aprobar Técnico</Text>
           </TouchableOpacity>
-
+ 
           <TouchableOpacity
             style={styles.rejectBtn}
             onPress={() => onReject(professional.id)}
@@ -98,7 +99,7 @@ export default function AdminAuditCard({ professional, onApprove, onReject, onIn
     </View>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',

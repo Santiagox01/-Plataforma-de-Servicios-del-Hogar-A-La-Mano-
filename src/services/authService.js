@@ -1,5 +1,8 @@
 import { supabase, testSupabaseConnection } from './supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Role, ProStatus } from '../constants/statuses';
+import { AVATARS } from '../constants/config';
+import { createUser, validateRoleFields } from './userFactory';
 
 const LOCAL_USER_KEY = 'a_la_mano_current_user_v1';
 
@@ -9,32 +12,32 @@ export const DEMO_USERS = {
     name: 'Juanita Restrepo V.',
     email: 'cliente@alamano.co',
     phone: '3004567890',
-    role: 'client',
+    role: Role.CLIENT,
     zone: 'El Poblado',
     address: 'Calle 10 # 43E-20, Apt 502, El Poblado, Medellín',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+    avatar: AVATARS.client
   },
   professional: {
     id: 'a2222222-2222-2222-2222-222222222222',
     name: 'Carlos Mario Restrepo',
     email: 'carlos@alamano.co',
     phone: '3117894561',
-    role: 'professional',
-    status: 'verified',
+    role: Role.PROFESSIONAL,
+    status: ProStatus.VERIFIED,
     specialtyName: 'Electricista Residencial e Industrial',
     conteReg: 'CONTE TE1-49201',
     ccNumber: '71.394.205',
     zone: 'Laureles',
     address: 'Circular 4 # 73-15, Laureles, Medellín',
-    avatar: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150&auto=format&fit=crop&q=80'
+    avatar: AVATARS.professional
   },
   pendingPro: {
     id: 'a5555555-5555-5555-5555-555555555555',
     name: 'Pedro Pablo Jaramillo',
     email: 'pedro@alamano.co',
     phone: '3189901122',
-    role: 'professional',
-    status: 'pending',
+    role: Role.PROFESSIONAL,
+    status: ProStatus.PENDING,
     specialtyName: 'Cerrajería 24/7 y Acabados',
     conteReg: 'Certificado SENA #CER-8401',
     ccNumber: '1.036.711.592',
@@ -47,12 +50,17 @@ export const DEMO_USERS = {
     name: 'Laura Restrepo (Auditoría)',
     email: 'admin@alamano.co',
     phone: '3000000000',
-    role: 'admin',
+    role: Role.ADMIN,
     zone: 'El Poblado',
     address: 'Sede Operativa A La Mano, Medellín',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
   }
 };
+
+// Índice por correo: reemplaza los 4 bloques "if (cleanEmail === ...)" repetidos
+const DEMO_BY_EMAIL = Object.fromEntries(
+  Object.values(DEMO_USERS).map((u) => [u.email, u])
+);
 
 // Validaciones para Colombia (HU01)
 export function validateEmail(email) {
@@ -93,6 +101,14 @@ export async function setLocalUser(user) {
   }
 }
 
+// Si el correo es de una cuenta demo, inicia sesión con ella; si no, devuelve null
+async function tryDemoLogin(cleanEmail) {
+  const demo = DEMO_BY_EMAIL[cleanEmail];
+  if (!demo) return null;
+  await setLocalUser(demo);
+  return { success: true, user: demo, isDemo: true };
+}
+
 // Iniciar sesión (con soporte Supabase Auth y fallback demo)
 export async function loginUser(email, password) {
   const cleanEmail = String(email || '').trim().toLowerCase();
@@ -117,7 +133,10 @@ export async function loginUser(email, password) {
         .maybeSingle();
 
       let proData = null;
-      if (profile?.role === 'professional' || (!profile && authData.user.user_metadata?.role === 'professional')) {
+      if (
+        profile?.role === Role.PROFESSIONAL ||
+        (!profile && authData.user.user_metadata?.role === Role.PROFESSIONAL)
+      ) {
         const { data: pro } = await supabase
           .from('professionals')
           .select('*')
@@ -126,20 +145,24 @@ export async function loginUser(email, password) {
         proData = pro;
       }
 
-      const userObj = {
-        id: authData.user.id,
-        name: profile?.full_name || authData.user.user_metadata?.full_name || cleanEmail.split('@')[0],
-        email: cleanEmail,
-        phone: profile?.phone || authData.user.user_metadata?.phone || '3000000000',
-        role: profile?.role || authData.user.user_metadata?.role || 'client',
-        status: proData?.status || 'verified',
-        zone: profile?.zone || 'El Poblado',
-        address: profile?.address || 'Medellín',
-        specialtyName: proData?.specialty_name || authData.user.user_metadata?.specialtyName || null,
-        ccNumber: proData?.cc_number || authData.user.user_metadata?.ccNumber || null,
-        conteReg: proData?.conte_reg || authData.user.user_metadata?.conteReg || null,
-        avatar: profile?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-      };
+      // Factory Method: el rol decide cómo se construye el usuario
+      const userObj = createUser(
+        profile?.role || authData.user.user_metadata?.role || Role.CLIENT,
+        {
+          id: authData.user.id,
+          name: profile?.full_name || authData.user.user_metadata?.full_name || cleanEmail.split('@')[0],
+          email: cleanEmail,
+          phone: profile?.phone || authData.user.user_metadata?.phone || '3000000000',
+          status: proData?.status,
+          zone: profile?.zone,
+          address: profile?.address,
+          specialtyName: proData?.specialty_name || authData.user.user_metadata?.specialtyName,
+          ccNumber: proData?.cc_number || authData.user.user_metadata?.ccNumber,
+          conteReg: proData?.conte_reg || authData.user.user_metadata?.conteReg,
+          avatar: profile?.avatar_url,
+          isSupabase: true
+        }
+      );
 
       await setLocalUser(userObj);
       return { success: true, user: userObj, isSupabase: true };
@@ -148,22 +171,8 @@ export async function loginUser(email, password) {
       // Si el error no es de conexión sino de credenciales erróneas en Supabase:
       if (authError.message.includes('Invalid login credentials')) {
         // Revisar si coincide con cuentas demo para facilitar pruebas
-        if (cleanEmail === DEMO_USERS.admin.email) {
-          await setLocalUser(DEMO_USERS.admin);
-          return { success: true, user: DEMO_USERS.admin, isDemo: true };
-        }
-        if (cleanEmail === DEMO_USERS.professional.email) {
-          await setLocalUser(DEMO_USERS.professional);
-          return { success: true, user: DEMO_USERS.professional, isDemo: true };
-        }
-        if (cleanEmail === DEMO_USERS.pendingPro.email) {
-          await setLocalUser(DEMO_USERS.pendingPro);
-          return { success: true, user: DEMO_USERS.pendingPro, isDemo: true };
-        }
-        if (cleanEmail === DEMO_USERS.client.email) {
-          await setLocalUser(DEMO_USERS.client);
-          return { success: true, user: DEMO_USERS.client, isDemo: true };
-        }
+        const demo = await tryDemoLogin(cleanEmail);
+        if (demo) return demo;
         return { success: false, message: 'Credenciales inválidas en Supabase. Verifica tu correo y contraseña.' };
       }
     }
@@ -172,35 +181,17 @@ export async function loginUser(email, password) {
   }
 
   // 2. Fallback inteligente para cuentas demo de evaluación académica
-  if (cleanEmail === DEMO_USERS.admin.email) {
-    await setLocalUser(DEMO_USERS.admin);
-    return { success: true, user: DEMO_USERS.admin, isDemo: true };
-  }
-  if (cleanEmail === DEMO_USERS.professional.email) {
-    await setLocalUser(DEMO_USERS.professional);
-    return { success: true, user: DEMO_USERS.professional, isDemo: true };
-  }
-  if (cleanEmail === DEMO_USERS.pendingPro.email) {
-    await setLocalUser(DEMO_USERS.pendingPro);
-    return { success: true, user: DEMO_USERS.pendingPro, isDemo: true };
-  }
-  if (cleanEmail === DEMO_USERS.client.email) {
-    await setLocalUser(DEMO_USERS.client);
-    return { success: true, user: DEMO_USERS.client, isDemo: true };
-  }
+  const demo = await tryDemoLogin(cleanEmail);
+  if (demo) return demo;
 
   // Si no está en Supabase y no es demo, crear usuario local para no bloquear la experiencia
-  const customUser = {
+  const customUser = createUser(Role.CLIENT, {
     id: `usr_${Date.now()}`,
     name: cleanEmail.split('@')[0].toUpperCase(),
     email: cleanEmail,
     phone: '3001234567',
-    role: 'client',
-    status: 'verified',
-    zone: 'El Poblado',
-    address: 'Medellín, Antioquia',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-  };
+    address: 'Medellín, Antioquia'
+  });
   await setLocalUser(customUser);
   return { success: true, user: customUser, isLocalFallback: true };
 }
@@ -212,7 +203,7 @@ export async function registerUser(formData) {
     email,
     phone,
     password,
-    role = 'client',
+    role = Role.CLIENT,
     zone = 'El Poblado',
     address = 'Medellín',
     specialtyName,
@@ -234,13 +225,11 @@ export async function registerUser(formData) {
   if (!passCheck.isValid) {
     return { success: false, message: 'La contraseña debe tener mínimo 8 caracteres, al menos una mayúscula y un número.' };
   }
-  if (role === 'professional') {
-    if (!specialtyName || !specialtyName.trim()) {
-      return { success: false, message: 'Debes seleccionar o escribir tu especialidad técnica.' };
-    }
-    if (!ccNumber || !ccNumber.trim()) {
-      return { success: false, message: 'La Cédula de Ciudadanía es obligatoria para la verificación oficial de identidad.' };
-    }
+
+  // Validación específica del rol (la define cada Creator de la fábrica)
+  const roleError = validateRoleFields(role, formData);
+  if (roleError) {
+    return { success: false, message: roleError };
   }
 
   const cleanEmail = email.trim().toLowerCase();
@@ -267,6 +256,10 @@ export async function registerUser(formData) {
       }
     });
 
+    if (authError) {
+      console.log('Supabase signUp error:', authError.message);
+    }
+
     if (!authError && authData?.user) {
       registeredUserId = authData.user.id;
       registeredInSupabase = true;
@@ -282,14 +275,12 @@ export async function registerUser(formData) {
           role,
           zone,
           address,
-          avatar_url: role === 'professional'
-            ? 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150&auto=format&fit=crop&q=80'
-            : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+          avatar_url: role === Role.PROFESSIONAL ? AVATARS.professional : AVATARS.client
         }
       ]);
 
       // Si es profesional, insertar en tabla professionals y crear expediente de documentos
-      if (role === 'professional') {
+      if (role === Role.PROFESSIONAL) {
         const { data: proData } = await supabase.from('professionals').insert([
           {
             profile_id: registeredUserId,
@@ -302,7 +293,7 @@ export async function registerUser(formData) {
             cc_number: ccNumber.trim(),
             conte_reg: conteReg ? conteReg.trim() : null,
             bio: bio || `Especialista en ${specialtyName} en el Valle de Aburrá.`,
-            status: 'pending',
+            status: ProStatus.PENDING,
             is_available: false
           }
         ]).select().maybeSingle();
@@ -330,24 +321,20 @@ export async function registerUser(formData) {
     console.log('Supabase offline or exception in register:', err);
   }
 
-  // Construir objeto de usuario para la sesión activa
-  const newUser = {
+  // Factory Method: construir el usuario de la sesión según el rol
+  // (el profesional siempre nace en estado "pending", HU02/HU03)
+  const newUser = createUser(role, {
     id: registeredUserId,
     name: name.trim(),
     email: cleanEmail,
     phone: cleanPhone,
-    role,
-    status: role === 'professional' ? 'pending' : 'verified',
     zone,
     address,
-    specialtyName: specialtyName || null,
-    ccNumber: ccNumber || null,
-    conteReg: conteReg || null,
-    avatar: role === 'professional'
-      ? 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150&auto=format&fit=crop&q=80'
-      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    specialtyName,
+    ccNumber,
+    conteReg,
     isSupabase: registeredInSupabase
-  };
+  });
 
   await setLocalUser(newUser);
 
@@ -355,7 +342,7 @@ export async function registerUser(formData) {
     success: true,
     user: newUser,
     isSupabase: registeredInSupabase,
-    message: role === 'professional'
+    message: role === Role.PROFESSIONAL
       ? '¡Registro completado! Tu expediente técnico y cédula han sido radicados para auditoría y verificación. Puedes revisar el estado de tus documentos.'
       : '¡Bienvenido a A La Mano! Tu cuenta de cliente fue creada exitosamente.'
   };
@@ -365,10 +352,14 @@ export async function registerUser(formData) {
 export async function logoutUser() {
   try {
     await supabase.auth.signOut();
-  } catch (e) {}
+  } catch (e) {
+    console.warn('No se pudo cerrar sesión en Supabase:', e?.message);
+  }
   try {
     await AsyncStorage.removeItem(LOCAL_USER_KEY);
-  } catch (e) {}
+  } catch (e) {
+    console.warn('No se pudo borrar el usuario local:', e?.message);
+  }
   return true;
 }
 

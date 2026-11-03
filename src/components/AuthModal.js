@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { THEME } from '../constants/theme';
+import { Role } from '../constants/statuses';
 import {
   loginUser,
   registerUser,
@@ -23,11 +24,11 @@ import {
   validatePassword,
   DEMO_USERS
 } from '../services/authService';
-
+ 
 export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupabaseConfig }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [role, setRole] = useState('client'); // 'client' | 'professional'
-
+  const [role, setRole] = useState(Role.CLIENT);
+ 
   // Campos formulario
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +42,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
   const [conteReg, setConteReg] = useState('');
   const [bio, setBio] = useState('');
   const [loading, setLoading] = useState(false);
-
+ 
   // Zonas de Medellín
   const ZONES = ['El Poblado', 'Laureles', 'Belén', 'Envigado', 'Robledo', 'Castilla', 'Buenos Aires', 'La Candelaria'];
   const SPECIALTIES = [
@@ -51,9 +52,9 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
     'Cerrajería 24/7 y Blindajes',
     'Pintura y Acabados de Hogar'
   ];
-
+ 
   const passValidation = validatePassword(password);
-
+ 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
       Alert.alert('Datos Requeridos', 'Por favor ingresa tu correo y contraseña.');
@@ -62,7 +63,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
     setLoading(true);
     const res = await loginUser(email, password);
     setLoading(false);
-
+ 
     if (res.success) {
       Alert.alert(
         '¡Inicio de Sesión Exitoso!',
@@ -74,7 +75,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
       Alert.alert('Error de Autenticación', res.message || 'Credenciales inválidas.');
     }
   };
-
+ 
   const handleRegister = async () => {
     setLoading(true);
     const res = await registerUser({
@@ -85,13 +86,13 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
       role,
       zone,
       address,
-      specialtyName: role === 'professional' ? specialtyName : null,
-      ccNumber: role === 'professional' ? ccNumber : null,
-      conteReg: role === 'professional' ? conteReg : null,
-      bio: role === 'professional' ? bio : null
+      specialtyName: role === Role.PROFESSIONAL ? specialtyName : null,
+      ccNumber: role === Role.PROFESSIONAL ? ccNumber : null,
+      conteReg: role === Role.PROFESSIONAL ? conteReg : null,
+      bio: role === Role.PROFESSIONAL ? bio : null
     });
     setLoading(false);
-
+ 
     if (res.success) {
       Alert.alert(
         '¡Cuenta Registrada!',
@@ -110,7 +111,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
       Alert.alert('Atención al Registrarse', res.message);
     }
   };
-
+ 
   const handleForgotPassword = async () => {
     if (!email.trim() || !validateEmail(email)) {
       Alert.alert('Correo Requerido', 'Escribe tu correo electrónico en el campo superior para enviarte el enlace de restablecimiento.');
@@ -121,7 +122,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
     setLoading(false);
     Alert.alert('Restablecimiento de Contraseña', res.message);
   };
-
+ 
   const handleQuickDemo = (userObj) => {
     onAuthSuccess(userObj);
     onClose();
@@ -130,7 +131,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
       `Sesión activa como: ${userObj.name}\nRol: ${userObj.role.toUpperCase()}${userObj.status ? ` (Estado: ${userObj.status.toUpperCase()})` : ''}`
     );
   };
-
+ 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
@@ -139,7 +140,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
       >
         <View style={styles.sheet}>
           <View style={styles.handle} />
-
+ 
           {/* Header */}
           <View style={styles.header}>
             <View>
@@ -152,7 +153,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
               <Ionicons name="close" size={22} color={THEME.colors.textMuted} />
             </TouchableOpacity>
           </View>
-
+ 
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
@@ -173,7 +174,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                 <Text style={[styles.tabBtnText, mode === 'register' && styles.tabBtnTextActive]}>Registrarse</Text>
               </TouchableOpacity>
             </View>
-
+ 
             {/* Accesos Rápidos de Demostración y Evaluación */}
             <View style={styles.demoSection}>
               <Text style={styles.demoLabel}>Cuentas Rápidas de Prueba y Sustentación:</Text>
@@ -182,48 +183,48 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                   <Ionicons name="person" size={13} color={THEME.colors.primary} />
                   <Text style={styles.demoChipText}>Juanita (Cliente)</Text>
                 </TouchableOpacity>
-
+ 
                 <TouchableOpacity style={styles.demoChip} onPress={() => handleQuickDemo(DEMO_USERS.professional)}>
                   <Ionicons name="checkmark-done" size={13} color="#15803d" />
                   <Text style={styles.demoChipText}>Carlos (Técnico Verificado)</Text>
                 </TouchableOpacity>
-
+ 
                 <TouchableOpacity style={styles.demoChip} onPress={() => handleQuickDemo(DEMO_USERS.pendingPro)}>
                   <Ionicons name="time" size={13} color="#b45309" />
                   <Text style={styles.demoChipText}>Pedro (Técnico Pendiente)</Text>
                 </TouchableOpacity>
-
+ 
                 <TouchableOpacity style={styles.demoChip} onPress={() => handleQuickDemo(DEMO_USERS.admin)}>
                   <Ionicons name="shield-checkmark" size={13} color="#0f172a" />
                   <Text style={styles.demoChipText}>Laura (Auditora Admin)</Text>
                 </TouchableOpacity>
               </View>
             </View>
-
+ 
             {mode === 'register' && (
               <>
                 {/* Selector de Rol */}
                 <Text style={styles.fieldLabel}>¿Cómo deseas utilizar la plataforma?</Text>
                 <View style={styles.roleSelectorRow}>
                   <TouchableOpacity
-                    style={[styles.roleBox, role === 'client' && styles.roleBoxActive]}
-                    onPress={() => setRole('client')}
+                    style={[styles.roleBox, role === Role.CLIENT && styles.roleBoxActive]}
+                    onPress={() => setRole(Role.CLIENT)}
                   >
-                    <Ionicons name="home" size={20} color={role === 'client' ? THEME.colors.primary : THEME.colors.textMuted} />
-                    <Text style={[styles.roleBoxText, role === 'client' && styles.roleBoxTextActive]}>Soy Cliente</Text>
+                    <Ionicons name="home" size={20} color={role === Role.CLIENT ? THEME.colors.primary : THEME.colors.textMuted} />
+                    <Text style={[styles.roleBoxText, role === Role.CLIENT && styles.roleBoxTextActive]}>Soy Cliente</Text>
                     <Text style={styles.roleBoxSub}>Solicitar servicios y reparaciones</Text>
                   </TouchableOpacity>
-
+ 
                   <TouchableOpacity
-                    style={[styles.roleBox, role === 'professional' && styles.roleBoxActive]}
-                    onPress={() => setRole('professional')}
+                    style={[styles.roleBox, role === Role.PROFESSIONAL && styles.roleBoxActive]}
+                    onPress={() => setRole(Role.PROFESSIONAL)}
                   >
-                    <Ionicons name="construct" size={20} color={role === 'professional' ? THEME.colors.primary : THEME.colors.textMuted} />
-                    <Text style={[styles.roleBoxText, role === 'professional' && styles.roleBoxTextActive]}>Soy Técnico</Text>
+                    <Ionicons name="construct" size={20} color={role === Role.PROFESSIONAL ? THEME.colors.primary : THEME.colors.textMuted} />
+                    <Text style={[styles.roleBoxText, role === Role.PROFESSIONAL && styles.roleBoxTextActive]}>Soy Técnico</Text>
                     <Text style={styles.roleBoxSub}>Acreditarme y ofrecer servicios</Text>
                   </TouchableOpacity>
                 </View>
-
+ 
                 {/* Nombre */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.fieldLabel}>Nombre Completo *</Text>
@@ -236,7 +237,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                 </View>
               </>
             )}
-
+ 
             {/* Correo Electrónico */}
             <View style={styles.inputGroup}>
               <Text style={styles.fieldLabel}>Correo Electrónico *</Text>
@@ -249,7 +250,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                 onChangeText={setEmail}
               />
             </View>
-
+ 
             {mode === 'register' && (
               <>
                 {/* Celular */}
@@ -263,7 +264,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                     onChangeText={setPhone}
                   />
                 </View>
-
+ 
                 {/* Zona en Medellín */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.fieldLabel}>Comuna / Zona de Cobertura *</Text>
@@ -279,7 +280,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                     ))}
                   </ScrollView>
                 </View>
-
+ 
                 {/* Dirección */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.fieldLabel}>Dirección / Barrio *</Text>
@@ -290,15 +291,15 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                     onChangeText={setAddress}
                   />
                 </View>
-
+ 
                 {/* Campos para Técnico Profesional (HU02) */}
-                {role === 'professional' && (
+                {role === Role.PROFESSIONAL && (
                   <View style={styles.proSection}>
                     <View style={styles.proHeader}>
                       <Ionicons name="document-lock" size={16} color={THEME.colors.primary} />
                       <Text style={styles.proSectionTitle}>Expediente y Documentación Técnica</Text>
                     </View>
-
+ 
                     <Text style={styles.fieldLabel}>Especialidad Principal *</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.zonesScroll}>
                       {SPECIALTIES.map(sp => (
@@ -311,7 +312,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
-
+ 
                     <View style={styles.inputGroup}>
                       <Text style={styles.fieldLabel}>Número de Cédula de Ciudadanía (C.C.) *</Text>
                       <TextInput
@@ -322,7 +323,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                         onChangeText={setCcNumber}
                       />
                     </View>
-
+ 
                     <View style={styles.inputGroup}>
                       <Text style={styles.fieldLabel}>Matrícula Técnica / Tarjeta CONTE (Opcional)</Text>
                       <TextInput
@@ -332,7 +333,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                         onChangeText={setConteReg}
                       />
                     </View>
-
+ 
                     <View style={styles.inputGroup}>
                       <Text style={styles.fieldLabel}>Resumen de Experiencia Profesional</Text>
                       <TextInput
@@ -347,7 +348,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                 )}
               </>
             )}
-
+ 
             {/* Contraseña */}
             <View style={styles.inputGroup}>
               <View style={styles.passHeader}>
@@ -358,7 +359,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                   </TouchableOpacity>
                 )}
               </View>
-
+ 
               <View style={styles.passwordWrapper}>
                 <TextInput
                   style={styles.passwordInput}
@@ -378,7 +379,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                   />
                 </TouchableOpacity>
               </View>
-
+ 
               {mode === 'register' && password.length > 0 && (
                 <View style={styles.passStrengthRow}>
                   <View style={[styles.strengthItem, passValidation.hasLength && styles.strengthItemOk]}>
@@ -396,7 +397,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
                 </View>
               )}
             </View>
-
+ 
             {/* Botón de Acción Principal */}
             <TouchableOpacity
               style={styles.actionBtn}
@@ -418,7 +419,7 @@ export default function AuthModal({ visible, onClose, onAuthSuccess, onOpenSupab
     </Modal>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
