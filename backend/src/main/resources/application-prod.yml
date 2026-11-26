@@ -1,0 +1,48 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    url: ${DB_URL:${SUPABASE_DB_URL}}
+    username: ${DB_USER:${SUPABASE_DB_USER}}
+    password: ${DB_PASSWORD:${SUPABASE_DB_PASSWORD}}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:5}
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 300000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiracion-ms: ${JWT_EXPIRATION_MS:86400000}
+  autenticacion:
+    max-intentos-fallidos: ${AUTH_MAX_INTENTOS_FALLIDOS:5}
+    minutos-bloqueo: ${AUTH_BLOQUEO_MINUTOS:15}
+  storage:
+    tipo: ${STORAGE_TIPO:local}
+    local-dir: ${STORAGE_LOCAL_DIR:/data/uploads}
+    firma-secret: ${STORAGE_FIRMA_SECRET}
+    expiracion-url-segundos: ${STORAGE_URL_EXPIRACION_SEGUNDOS:300}
+    supabase-url: ${SUPABASE_STORAGE_URL:}
+    supabase-service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
+    supabase-bucket: ${SUPABASE_STORAGE_BUCKET:documentos-privados}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8081}
+  public-base-url: ${APP_PUBLIC_BASE_URL:http://localhost:8080}
+  tarifa:
+    tasa-cambio-cop-usd: ${PAYPAL_TASA_CAMBIO_COP_USD:4000.00}
+  pagos:
+    pasarela: ${PAGOS_PASARELA:paypal}
+    paypal:
+      client-id: ${PAYPAL_CLIENT_ID:}
+      client-secret: ${PAYPAL_CLIENT_SECRET:}
+      base-url: ${PAYPAL_BASE_URL:https://api-m.sandbox.paypal.com}
+      return-url: ${PAYPAL_RETURN_URL:${APP_PUBLIC_BASE_URL:http://localhost:8080}/api/pagos/paypal/retorno}
+      cancel-url: ${PAYPAL_CANCEL_URL:${APP_PUBLIC_BASE_URL:http://localhost:8080}/api/pagos/paypal/cancelado}
+  moderacion:
+    dias-suspension-defecto: ${MODERACION_DIAS_SUSPENSION_DEFECTO:7}

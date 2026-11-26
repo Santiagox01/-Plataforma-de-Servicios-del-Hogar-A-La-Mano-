@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: a-la-mano-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-alamano}
+      POSTGRES_USER: ${POSTGRES_USER:-alamano}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-alamano123}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata_alamano:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-alamano} -d ${POSTGRES_DB:-alamano}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: a-la-mano-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      SERVER_PORT: 8080
+      SUPABASE_DB_URL: ${DOCKER_DB_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-alamano}}
+      SUPABASE_DB_USER: ${DOCKER_DB_USER:-${POSTGRES_USER:-alamano}}
+      SUPABASE_DB_PASSWORD: ${DOCKER_DB_PASSWORD:-${POSTGRES_PASSWORD:-alamano123}}
+      JWT_SECRET: ${JWT_SECRET:-cambia_este_secreto_jwt_en_env_antes_de_desplegar_32chars}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      STORAGE_TIPO: ${STORAGE_TIPO:-local}
+      STORAGE_LOCAL_DIR: /app/uploads
+      STORAGE_FIRMA_SECRET: ${STORAGE_FIRMA_SECRET:-cambia_este_secreto_firma_en_env_32chars}
+      SUPABASE_STORAGE_URL: ${SUPABASE_STORAGE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET:-documentos-privados}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:8081,http://localhost:19006,http://10.0.2.2:8081}
+      APP_PUBLIC_BASE_URL: ${APP_PUBLIC_BASE_URL:-http://localhost:8080}
+      PAGOS_PASARELA: ${PAGOS_PASARELA:-simulada}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID:-}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET:-}
+      PAYPAL_BASE_URL: ${PAYPAL_BASE_URL:-https://api-m.sandbox.paypal.com}
+      PAYPAL_RETURN_URL: ${PAYPAL_RETURN_URL:-http://localhost:8080/api/pagos/paypal/retorno}
+      PAYPAL_CANCEL_URL: ${PAYPAL_CANCEL_URL:-http://localhost:8080/api/pagos/paypal/cancelado}
+      PAYPAL_TASA_CAMBIO_COP_USD: ${PAYPAL_TASA_CAMBIO_COP_USD:-4000.00}
+      MODERACION_DIAS_SUSPENSION_DEFECTO: ${MODERACION_DIAS_SUSPENSION_DEFECTO:-7}
+    volumes:
+      - uploads_alamano:/app/uploads
+
+volumes:
+  pgdata_alamano:
+  uploads_alamano:

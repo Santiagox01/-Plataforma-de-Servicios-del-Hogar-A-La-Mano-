@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "A La Mano",
+    "slug": "a-la-mano-mobile",
+    "scheme": "alamano",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#b80035"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "A La Mano usa tu ubicación para encontrar profesionales verificados cerca de tu hogar en Medellín."
+      }
+    },
+    "android": {
+      "package": "co.edu.udea.alamano.mobile",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-location",
+      "expo-document-picker",
+      "expo-web-browser"
+    ]
+  }
+}

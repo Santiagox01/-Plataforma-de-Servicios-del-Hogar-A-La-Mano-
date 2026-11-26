@@ -1,42 +1,42 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Variables de entorno locales y secretos
+.env
+.env.*
+!.env.example
 
-# dependencies
+# Dependencias, compilación y archivos generados
 node_modules/
-
-# Expo
+target/
+uploads/
+backend/uploads/
 .expo/
 dist/
-web-build/
-expo-env.d.ts
+*.log
 
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# IDEs y sistema operativo
+.vscode/
+.idea/
+*.iml
 .DS_Store
-*.pem
+Thumbs.db
 
-# local env files
-.env
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
+# Carpetas legadas, herramientas locales y borradores universitarios fuera del monorepo
+a-la-mano-app/
+a-la-mano-movil/
+sustentacion/
+.agents/
+.mcp.json
+skills-lock.json
+Documento_Diseno_Basico_A_La_Mano.*
+dist-sustentacion.zip
+HU proyecto análisis/
+HU proyecto análisis (1).pdf
+hu_proyecto_*.txt
+Plantilla_Documento_Diseno_Basico_AD2.pdf
+proyecto análisis.docx
+proyecto análisis.docx.bak
+Sustentacion_Entrega_2_A_La_Mano.pptx
+Guion_Sustentacion_*
+mockups_img/
+stitch_red_white_mobile_app*/
+capture_*.py
+convert_to_pdf.py

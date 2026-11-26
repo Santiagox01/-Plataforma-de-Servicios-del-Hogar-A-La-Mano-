@@ -1,0 +1,439 @@
+### Variables base para VS Code REST Client
+@baseUrl = http://localhost:8080
+
+### 1. Listar categorías de oficio (Público - HU05)
+GET {{baseUrl}}/api/categorias
+
+### 2. HU01 — Registro de Cliente
+POST {{baseUrl}}/api/auth/registro/cliente
+Content-Type: application/json
+
+{
+  "nombre": "Valeria Ríos",
+  "correo": "valeria.rios@alamano.co",
+  "celular": "3004445566",
+  "contrasena": "Password1",
+  "ubicacion": "Envigado, Antioquia",
+  "latitud": 6.1719,
+  "longitud": -75.5863,
+  "aceptaTerminos": true
+}
+
+### 3. HU02 — Registro de Profesional (multipart/form-data)
+# Reemplaza ./documento_prueba.pdf por la ruta a un JPG/PNG/PDF real <= 10 MB
+POST {{baseUrl}}/api/auth/registro/profesional
+Content-Type: multipart/form-data; boundary=BoundaryALaMano
+
+--BoundaryALaMano
+Content-Disposition: form-data; name="nombre"
+
+Mateo Vargas
+--BoundaryALaMano
+Content-Disposition: form-data; name="correo"
+
+mateo.vargas@alamano.co
+--BoundaryALaMano
+Content-Disposition: form-data; name="celular"
+
+3148889900
+--BoundaryALaMano
+Content-Disposition: form-data; name="contrasena"
+
+Profesional1
+--BoundaryALaMano
+Content-Disposition: form-data; name="ubicacion"
+
+Laureles, Medellín
+--BoundaryALaMano
+Content-Disposition: form-data; name="latitud"
+
+6.2447
+--BoundaryALaMano
+Content-Disposition: form-data; name="longitud"
+
+-75.5950
+--BoundaryALaMano
+Content-Disposition: form-data; name="categoriasIds"
+
+1
+--BoundaryALaMano
+Content-Disposition: form-data; name="aceptaTerminos"
+
+true
+--BoundaryALaMano
+Content-Disposition: form-data; name="documentoIdentidad"; filename="cedula.pdf"
+Content-Type: application/pdf
+
+< ./documento_prueba.pdf
+--BoundaryALaMano--
+
+### 4. HU04 — Login Cliente (Semilla)
+# @name loginCliente
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "carlos.cliente@alamano.co",
+  "contrasena": "Cliente123"
+}
+
+### 5. HU04 — Login Profesional Pendiente (Semilla)
+# @name loginProPendiente
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "pedro.cerrajero@alamano.co",
+  "contrasena": "Profesional1"
+}
+
+### 6. HU04 — Login Administrador (Semilla)
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "admin@alamano.co",
+  "contrasena": "Admin1234"
+}
+
+### 7. Perfil autenticado actual
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 8. HU05 — Buscar profesionales por categoría y ubicación (El Poblado, radio 10 km)
+GET {{baseUrl}}/api/profesionales/buscar?categoriaId=1&latitud=6.2088&longitud=-75.5695&radioKm=10
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 9. HU06 — Ver perfil público de un profesional verificado (ej. ID 4 = Juan Pérez)
+GET {{baseUrl}}/api/profesionales/4
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 10. HU03 — Admin lista profesionales pendientes de verificación
+GET {{baseUrl}}/api/admin/profesionales/pendientes
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### 11. HU03 — Admin solicita URL firmada temporal para visualizar documento sin descarga local (ID 7 = Pedro Restrepo)
+# @name docUrl
+GET {{baseUrl}}/api/admin/profesionales/7/documento-url
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### 12. Visualizar documento inline con token temporal
+GET {{docUrl.response.body.urlDocumentoIdentidad}}
+
+### 13. HU03 — Admin aprueba profesional pendiente
+POST {{baseUrl}}/api/admin/profesionales/7/aprobar
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### 14. HU03 — Admin rechaza profesional con motivo
+POST {{baseUrl}}/api/admin/profesionales/7/rechazar
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: application/json
+
+{
+  "motivo": "El documento adjunto se encuentra borroso e ilegible."
+}
+
+### 15. Profesional activa su disponibilidad (solo permitido tras verificación)
+PATCH {{baseUrl}}/api/profesionales/me/disponibilidad
+Authorization: Bearer {{loginProPendiente.response.body.token}}
+Content-Type: application/json
+
+{
+  "disponible": true
+}
+
+### 16. Consultar mis notificaciones
+GET {{baseUrl}}/api/notificaciones
+Authorization: Bearer {{loginProPendiente.response.body.token}}
+
+### 17. HU04 — Cerrar sesión (revoca JWT)
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### ============================================================================
+### SPRINT 2 — HU07 a HU12 (Tarifas, Cotización, Solicitudes, Chat, Reseñas)
+### ============================================================================
+
+### 18. Login Juan Electricista (Semilla)
+# @name loginJuan
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "correo": "juan.electricista@alamano.co",
+  "contrasena": "Profesional1"
+}
+
+### 19. HU08 — Profesional lista sus categorías/servicios
+GET {{baseUrl}}/api/profesionales/me/servicios
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 20. HU08 — Profesional configura tarifa base y rango min/max (Electricidad = idCategoria 1)
+PUT {{baseUrl}}/api/profesionales/me/tarifas
+Authorization: Bearer {{loginJuan.response.body.token}}
+Content-Type: application/json
+
+{
+  "idCategoria": 1,
+  "tarifaBase": 50000,
+  "precioMin": 40000,
+  "precioMax": 60000
+}
+
+### 21. HU09 — Cotización en vivo sin crear solicitud (switch urgencia = true -> acotado a 60000)
+GET {{baseUrl}}/api/cotizaciones/estimar?servicioId=1&esUrgente=true
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 22. HU07 — Cliente crea solicitud de servicio (multipart/form-data, hasta 3 fotos opcionales)
+# @name nuevaSolicitud
+POST {{baseUrl}}/api/solicitudes
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: multipart/form-data; boundary=BoundarySol
+
+--BoundarySol
+Content-Disposition: form-data; name="idServicio"
+
+1
+--BoundarySol
+Content-Disposition: form-data; name="descripcion"
+
+El breaker principal salta al encender el horno eléctrico.
+--BoundarySol
+Content-Disposition: form-data; name="esUrgente"
+
+true
+--BoundarySol--
+
+### 23. Listar mis solicitudes (Cliente o Profesional)
+GET {{baseUrl}}/api/solicitudes/mis-solicitudes
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 24. Ver detalle de una solicitud
+GET {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 25. HU07 — Profesional acepta solicitud (habilita chat)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/aceptar
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 26. HU07 — Profesional rechaza solicitud con motivo (alternativo a aceptar)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/rechazar
+Authorization: Bearer {{loginJuan.response.body.token}}
+Content-Type: application/json
+
+{
+  "motivo": "No cuento con disponibilidad en ese horario."
+}
+
+### 27. HU11 — Enviar mensaje en el chat de la solicitud aceptada
+# @name msgCliente
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/chat/mensajes
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "contenido": "Hola Juan, te espero en la portería torre 2."
+}
+
+### 28. HU11 — Listar mensajes del chat (polling cada 2 s desde mobile)
+GET {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/chat/mensajes
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 29. HU11 — Marcar mensaje como LEIDO
+PATCH {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/chat/mensajes/{{msgCliente.response.body.idMensaje}}/leer
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 30. HU10 — Profesional registra precio final al terminar
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/precio-final
+Authorization: Bearer {{loginJuan.response.body.token}}
+Content-Type: application/json
+
+{
+  "precioFinal": 58000
+}
+
+### 31. HU10 — Cliente confirma precio final (pasa a FINALIZADA y habilita cobro/reseña)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/confirmar-precio-final
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 32. HU10 — Cliente rechaza precio final (pasa a EN_DISPUTA y notifica a soporte)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/rechazar-precio-final
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "motivo": "El valor supera lo acordado antes de iniciar."
+}
+
+### 33. HU12 — Cliente califica solicitud FINALIZADA (recalcula promedio del profesional)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/resena
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "estrellas": 5,
+  "comentario": "Excelente servicio, solucionó la falla eléctrica rápido."
+}
+
+### ============================================================================
+### SPRINT 3 — HU13 a HU18 (Pagos en custodia, Reportes, Moderación y Soporte)
+### ============================================================================
+
+### 34. HU13 — Listar métodos de pago del cliente
+GET {{baseUrl}}/api/metodos-pago
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 35. HU13 — Registrar tarjeta válida (terminada en 4242 -> tokenizada, nunca guarda PAN/CVV)
+# @name metodoValido
+POST {{baseUrl}}/api/metodos-pago
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "numeroTarjeta": "4242424242424242",
+  "cvv": "888",
+  "mesVencimiento": 12,
+  "anioVencimiento": 2028,
+  "tipo": "TARJETA_CREDITO",
+  "titular": "Carlos Ramírez"
+}
+
+### 36. HU13 — Tarjeta rechazada en registro (terminada en 0001 -> HTTP 400, no se guarda)
+POST {{baseUrl}}/api/metodos-pago
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "numeroTarjeta": "4111111111110001",
+  "cvv": "111",
+  "mesVencimiento": 12,
+  "anioVencimiento": 2028,
+  "tipo": "TARJETA_CREDITO",
+  "titular": "Carlos Ramírez"
+}
+
+### 37. HU14 — Consultar resumen de pago (precioFinal + garantía fija $3.000)
+GET {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pago/resumen
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 38. HU14 — Pagar servicio en custodia (RETENIDO -> solicitud PAGADA + comprobante)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pagar
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "idMetodoPago": {{metodoValido.response.body.idMetodoPago}}
+}
+
+### 39. HU14 — Consultar comprobante de pago (accesible para cliente y profesional)
+GET {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pago
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 40. HU14 — Confirmar servicio recibido y liberar fondos en custodia (LIBERADO)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pago/liberar
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 41. HU15/HU16 — Listar motivos de reporte según el rol autenticado
+GET {{baseUrl}}/api/reportes/motivos
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 42. HU15 — Crear reporte asociado a una solicitud (marca esPrioritario si hay reincidencia)
+# @name nuevoReporte
+POST {{baseUrl}}/api/reportes
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "idSolicitud": {{nuevaSolicitud.response.body.idSolicitud}},
+  "motivo": "MALA_CALIDAD",
+  "descripcion": "Quedó pendiente la tapa del tablero principal sin asegurar."
+}
+
+### 43. HU15/HU16 — Ver reportes recibidos (anónimo: nunca expone al reportante)
+GET {{baseUrl}}/api/reportes/recibidos
+Authorization: Bearer {{loginJuan.response.body.token}}
+
+### 44. HU17 — Cola prioritaria de reportes para el administrador
+GET {{baseUrl}}/api/admin/reportes?estado=PENDIENTE
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### 45. HU17 — Resolver reporte de forma inmutable con sanción polimórfica y auditoría
+POST {{baseUrl}}/api/admin/reportes/{{nuevoReporte.response.body.idReporte}}/resolver
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: application/json
+
+{
+  "accion": "ADVERTENCIA",
+  "decisionPago": "SIN_CAMBIO",
+  "justificacion": "Se emite advertencia formal documentada tras revisar las evidencias."
+}
+
+### 46. HU18 — Crear ticket de soporte con número único SUP-YYYY-XXXXXXXX
+# @name nuevoCasoSoporte
+POST {{baseUrl}}/api/soporte/casos
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "asunto": "Duda con comprobante de pago",
+  "descripcion": "Quisiera confirmar la referencia de garantía aplicada.",
+  "idSolicitud": {{nuevaSolicitud.response.body.idSolicitud}}
+}
+
+### 47. HU18 — Bandeja de soporte del administrador y respuesta
+GET {{baseUrl}}/api/admin/soporte/casos
+Authorization: Bearer {{loginAdmin.response.body.token}}
+
+### 48. HU18 — Administrador responde y cierra caso de soporte
+POST {{baseUrl}}/api/admin/soporte/casos/{{nuevoCasoSoporte.response.body.idCaso}}/responder
+Authorization: Bearer {{loginAdmin.response.body.token}}
+Content-Type: application/json
+
+{
+  "respuesta": "Confirmamos que la tasa de garantía de $3.000 COP cubre tu solicitud.",
+  "cerrar": true
+}
+
+### ============================================================================
+### PAYPAL SANDBOX (cuando PAGOS_PASARELA=paypal)
+### ============================================================================
+
+### 49. Consultar configuración activa de pasarela y tasa COP -> USD
+GET {{baseUrl}}/api/metodos-pago/config
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+### 50. HU13 — Vincular método PAYPAL (sin guardar tarjetas ni CVV)
+POST {{baseUrl}}/api/metodos-pago/paypal
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "correoOAlias": "buyer.sandbox@personal.example.com"
+}
+
+### 51. HU14 (PayPal) — Iniciar orden con intent=AUTHORIZE (devuelve approvalUrl y monto USD)
+# @name inicioPayPal
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pagar/iniciar
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "appRedirectUrl": "alamano://paypal-retorno"
+}
+
+### 52. HU14 (PayPal) — Confirmar y autorizar tras aprobar en Sandbox (RETENIDO -> PAGADA)
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pagar/confirmar
+Authorization: Bearer {{loginCliente.response.body.token}}
+Content-Type: application/json
+
+{
+  "idOrdenExterna": "{{inicioPayPal.response.body.idOrdenExterna}}"
+}
+
+### 53. HU14 (PayPal) — Cancelar orden pendiente si el cliente cerró/canceló antes de aprobar
+POST {{baseUrl}}/api/solicitudes/{{nuevaSolicitud.response.body.idSolicitud}}/pagar/cancelar
+Authorization: Bearer {{loginCliente.response.body.token}}
+
+
+
