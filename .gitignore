@@ -11,6 +11,8 @@ backend/uploads/
 .expo/
 dist/
 *.log
+__pycache__/
+*.pyc
 
 # IDEs y sistema operativo
 .vscode/

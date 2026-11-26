@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A La Mano · Sustentación Entrega #3 (Puntos 7, 9, 10 y 11)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="cover" data-surface="dark">
+
+  <!-- Ambient Stage Backdrop -->
+  <canvas id="fx-canvas" class="fx-canvas" aria-hidden="true"></canvas>
+  <div class="stage-wash" aria-hidden="true"></div>
+
+  <div class="presentation-shell">
+    <!-- Top Executive Floating HUD -->
+    <header class="top-hud">
+      <div class="hud-brand" data-go-slide="0" role="button" tabindex="0" title="Ir al inicio (Home)">
+        <div class="brand-emblem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="brand-copy">
+          <strong>A LA MANO</strong>
+          <span>Entrega #3 · A&amp;D2 UdeA</span>
+        </div>
+      </div>
+
+      <nav class="chapter-nav" aria-label="Navegación por expositor">
+        <button class="chapter-pill active" data-chapter="cover" data-go-slide="0" type="button">Inicio</button>
+        <button class="chapter-pill" data-chapter="salome" data-go-slide="2" type="button"><span class="dot dot-salome"></span>P.7 · Salomé</button>
+        <button class="chapter-pill" data-chapter="amy" data-go-slide="7" type="button"><span class="dot dot-amy"></span>P.9 · Amy</button>
+        <button class="chapter-pill" data-chapter="santiago" data-go-slide="9" type="button"><span class="dot dot-santiago"></span>P.10 · Santiago</button>
+        <button class="chapter-pill" data-chapter="nataly" data-go-slide="11" type="button"><span class="dot dot-nataly"></span>P.11 · Nataly</button>
+        <button class="chapter-pill" data-chapter="cierre" data-go-slide="13" type="button">Cierre</button>
+      </nav>
+
+      <div class="hud-actions">
+        <button id="btn-sfx" class="hud-btn active" type="button" title="Efectos de sonido de estudio">
+          <span id="sfx-icon">🔊</span><span>SFX</span>
+        </button>
+        <button id="btn-timer" class="hud-btn timer-pill" type="button" title="Cronómetro (clic iniciar/pausar, doble clic reiniciar)">
+          <span class="timer-dot"></span><span id="timer-display">00:00</span>
+        </button>
+        <button id="btn-notes" class="hud-btn" type="button" title="Notas del presentador (N)">
+          <span>Notas <kbd>N</kbd></span>
+        </button>
+        <button id="btn-overview" class="hud-btn" type="button" title="Mapa de diapositivas (G)">
+          <span>Mapa <kbd>G</kbd></span>
+        </button>
+        <button id="btn-fullscreen" class="hud-btn hud-btn-icon" type="button" title="Pantalla completa (F)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Keynote Stage -->
+    <main class="stage" id="stage">
+
+      <!-- ===============================================================
+           SLIDE 1 (DARK): PORTADA CINEMATOGRÁFICA + CASA VOXEL 3D HERO
+           =============================================================== -->
+      <section class="slide active" data-index="0" data-chapter="cover" data-surface="dark" data-title="Portada — A La Mano Entrega #3">
+        <div class="slide-canvas cover-canvas">
+          <div class="cover-badges anim-stagger" style="--stagger:0;">
+            <span class="live-badge"><span class="ping-ring"></span>Producción Activa · Railway + PostgreSQL 18.7</span>
+            <span class="chip-dark">UdeA · Ingeniería · A&amp;D2 (2026-2)</span>
+            <span class="chip-dark">Docente: Joaquín Molina Pérez</span>
+          </div>
+
+          <div class="cover-hero-grid">
+            <div class="cover-left">
+              <div class="eyebrow anim-stagger" style="--stagger:1;">Plataforma de Servicios del Hogar · Medellín</div>
+              <h1 class="hero-title anim-stagger" style="--stagger:2;">
+                A La Mano<br>
+                <span class="shimmer-gradient">Entrega #3</span>
+              </h1>
+              <p class="hero-sub anim-stagger" style="--stagger:3;">
+                Calidad verificada en producción, organización ágil, sostenibilidad financiera y marco legal de licenciamiento.
+              </p>
+
+              <div class="scope-pill anim-stagger" style="--stagger:4;">
+                <span class="scope-dot"></span>
+                <span><strong>Hoy:</strong> Puntos <strong>7, 9, 10 y 11</strong> · <strong>3 dic:</strong> Release v2 (Punto 8)</span>
+              </div>
+
+              <div class="cover-actions anim-stagger" style="--stagger:5;">
+                <button class="btn-crimson-hero" data-go-slide="1" type="button">
+                  <span>Iniciar Sustentación</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <button class="btn-dark-ghost" id="cover-open-grid" type="button">Explorar 14 vistas</button>
+              </div>
+
+              <div class="cover-team-strip anim-stagger" style="--stagger:6;">
+                <button class="team-chip" data-go-slide="2" type="button"><span class="tc-dot bg-salome"></span><strong>P.7</strong> Salomé</button>
+                <button class="team-chip" data-go-slide="7" type="button"><span class="tc-dot bg-amy"></span><strong>P.9</strong> Amy</button>
+                <button class="team-chip" data-go-slide="9" type="button"><span class="tc-dot bg-santiago"></span><strong>P.10</strong> Santiago</button>
+                <button class="team-chip" data-go-slide="11" type="button"><span class="tc-dot bg-nataly"></span><strong>P.11</strong> Nataly</button>
+              </div>
+            </div>
+
+            <div class="cover-right anim-stagger" style="--stagger:2;">
+              <div class="voxel-hero-card">
+                <div class="voxel-card-head">
+                  <span>HOGAR A LA MANO · DIORAMA VOXEL 3D</span>
+                  <button id="btn-explode-cover" class="voxel-explode-btn" type="button">Explode Capas 3D</button>
+                </div>
+                <div class="voxel-viewport cover-voxel-h">
+                  <canvas id="voxel-cover" class="voxel-canvas" aria-label="Diorama 3D A La Mano"></canvas>
+                  <span class="voxel-drag-hint">Arrastra 360° · Doble clic desarma</span>
+                </div>
+                <div class="voxel-legend-row">
+                  <span>Spring Boot + Flyway V1–V7</span>
+                  <span>PayPal Sandbox v2</span>
+                  <span>Volume /data/uploads</span>
+                  <span>Expo SDK 58</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 2 (LIGHT EDITORIAL): HOJA DE RUTA
+           =============================================================== -->
+      <section class="slide" data-index="1" data-chapter="cover" data-surface="light" data-title="Hoja de Ruta de la Sustentación">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker">Hoja de Ruta · Puntos 7, 9, 10 y 11</span>
+              <h2>Cuatro pilares que respaldan la plataforma en producción</h2>
+            </div>
+            <span class="pill-light">Clic en cualquier bloque para saltar</span>
+          </div>
+
+          <div class="roadmap-rail-light anim-stagger" style="--stagger:1;">
+            <span class="rr-step"><strong>07</strong> Calidad y Seguridad</span>
+            <span class="rr-arrow">→</span>
+            <span class="rr-step"><strong>09</strong> Equipo y Cronograma</span>
+            <span class="rr-arrow">→</span>
+            <span class="rr-step"><strong>10</strong> Presupuesto</span>
+            <span class="rr-arrow">→</span>
+            <span class="rr-step"><strong>11</strong> Licencia v1.0</span>
+            <span class="rr-arrow">→</span>
+            <span class="rr-step rr-target"><strong>3 dic</strong> Release v2</span>
+          </div>
+
+          <div class="agenda-cards-4">
+            <article class="ed-card agenda-ed ac-salome anim-stagger" style="--stagger:2;" data-go-slide="2">
+              <div class="big-num">07</div>
+              <h3>Calidad, Pruebas y Seguridad</h3>
+              <p class="ed-owner">Salomé Toro Cadavid · Diapos 3–7</p>
+              <ul>
+                <li>SOLID y flujo PayPalAdapter vivo</li>
+                <li>Deuda técnica real y 29/29 tests</li>
+                <li>Capturas reales y escudo HMAC 300s</li>
+              </ul>
+              <span class="ed-go">Abrir bloque →</span>
+            </article>
+
+            <article class="ed-card agenda-ed ac-amy anim-stagger" style="--stagger:3;" data-go-slide="7">
+              <div class="big-num">09</div>
+              <h3>Organización y Cronograma</h3>
+              <p class="ed-owner">Amy Herazo Bossa · Diapos 8–9</p>
+              <ul>
+                <li>4 roles para Doc y Release v2</li>
+                <li>Herramientas de gestión y nube</li>
+                <li>Gantt (23 sep–3 dic) y 4 hitos</li>
+              </ul>
+              <span class="ed-go">Abrir bloque →</span>
+            </article>
+
+            <article class="ed-card agenda-ed ac-santiago anim-stagger" style="--stagger:4;" data-go-slide="9">
+              <div class="big-num">10</div>
+              <h3>Presupuesto y Recursos</h3>
+              <p class="ed-owner">Santiago Jaramillo · Diapos 10–11</p>
+              <ul>
+                <li>Total valorizado: $12.740.000 COP</li>
+                <li>Solo $340.000 en gasto efectivo</li>
+                <li>Piloto $150K–$250K/mes escalable</li>
+              </ul>
+              <span class="ed-go">Abrir bloque →</span>
+            </article>
+
+            <article class="ed-card agenda-ed ac-nataly anim-stagger" style="--stagger:5;" data-go-slide="11">
+              <div class="big-num">11</div>
+              <h3>Licenciamiento y Derechos</h3>
+              <p class="ed-owner">Nataly Lievano · Diapos 12–13</p>
+              <ul>
+                <li>10 cláusulas claras de uso</li>
+                <li>Habeas Data (Ley 1581 de 2012)</li>
+                <li>Licencia Propietaria de Uso v1.0</li>
+              </ul>
+              <span class="ed-go">Abrir bloque →</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 3 (LIGHT EDITORIAL): 7.1 SOLID + PIPELINE INTERCAMBIABLE
+           =============================================================== -->
+      <section class="slide" data-index="2" data-chapter="salome" data-surface="light" data-title="7.1 SOLID y Pasarela Intercambiable">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-salome">Salomé Toro Cadavid · Punto 7.1</span>
+              <h2>SOLID en vivo: cambiamos la pasarela sin tocar el dominio</h2>
+            </div>
+            <div class="tab-bar-light" id="adapter-swap-tabs">
+              <button class="tab-light active" data-adapter="PayPalAdapter" type="button">PayPalAdapter (Live)</button>
+              <button class="tab-light" data-adapter="PasarelaSimulada" type="button">PasarelaSimulada</button>
+              <button class="tab-light" data-adapter="WompiAdapter" type="button">WompiAdapter</button>
+            </div>
+          </div>
+
+          <div class="ed-card pipeline-hero-card anim-stagger" style="--stagger:1;">
+            <svg id="pipeline-svg" viewBox="0 0 920 140" class="pipeline-svg-wide" role="img" aria-label="Flujo arquitectónico desacoplado"></svg>
+          </div>
+
+          <div class="solid-trio anim-stagger" style="--stagger:2;">
+            <article class="ed-card solid-pillar">
+              <span class="sp-tag">SRP · Responsabilidad Única</span>
+              <h3>Cada clase atiende un solo motivo de cambio</h3>
+              <p><code>ServicioVerificacion</code>, <code>CalculadorTarifa</code> e <code>ISolicitudRepositorio</code> separan negocio de HTTP y SQL.</p>
+            </article>
+            <article class="ed-card solid-pillar">
+              <span class="sp-tag">OCP · Abierto / Cerrado</span>
+              <h3>Nuevas tarifas sin editar contratos</h3>
+              <p><code>ITarificacionStrategy</code> suma el recargo del 30% por urgencia y permite futuras reglas por distancia u horario.</p>
+            </article>
+            <article class="ed-card solid-pillar">
+              <span class="sp-tag">DIP · Inversión de Dependencias</span>
+              <h3>Infraestructura enchufable por configuración</h3>
+              <p><code>IPasarelaPagos</code> sustituyó Wompi por PayPal Sandbox y <code>STORAGE_TIPO</code> permite pasar de Volume a S3/Supabase.</p>
+            </article>
+          </div>
+
+          <div class="modules-bar-light anim-stagger" style="--stagger:3;">
+            <span class="mb-label">5 Módulos + Estándar:</span>
+            <code>autenticacion_seguridad</code>
+            <code>gestion_servicios</code>
+            <code>cotizacion_tarificacion</code>
+            <code class="mb-hl">pagos</code>
+            <code>moderacion_reportes</code>
+            <span class="mb-conv">PascalCase · camelCase · UPPER_SNAKE_CASE</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 4 (LIGHT EDITORIAL): 7.2 DEUDA TÉCNICA 2x2
+           =============================================================== -->
+      <section class="slide" data-index="3" data-chapter="salome" data-surface="light" data-title="7.2 Identificación y Gestión de Deuda Técnica">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-salome">Salomé Toro Cadavid · Punto 7.2</span>
+              <h2>Deuda técnica identificada y hoja de mitigación</h2>
+            </div>
+            <span class="pill-light">Haz clic en cualquier nodo del cuadrante</span>
+          </div>
+
+          <div class="split-2">
+            <div class="ed-card panel-ed anim-stagger" style="--stagger:1;">
+              <div class="ed-panel-head">
+                <h3>Cuadrante Impacto × Criticidad</h3>
+                <span class="mono-light">4 hallazgos reales</span>
+              </div>
+              <svg id="debt-quadrant-svg" viewBox="0 0 520 300" class="quadrant-svg" role="img" aria-label="Matriz 2x2 de deuda técnica"></svg>
+            </div>
+
+            <div class="ed-card panel-ed anim-stagger" style="--stagger:2;">
+              <div class="debt-tabs-light" id="debt-selector-strip"></div>
+              <div id="debt-detail" class="debt-focus-body"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 5 (DARK SHOWSTOPPER): 7.3 SUITE 29/29 + MEDIDOR & BÓVEDA
+           =============================================================== -->
+      <section class="slide" data-index="4" data-chapter="salome" data-surface="dark" data-title="7.3 Suite JUnit 29/29 y Simulador Vivo">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-salome">Salomé Toro Cadavid · Punto 7.3</span>
+              <h2>Suite automatizada 29/29 &amp; laboratorio de invariantes</h2>
+            </div>
+            <button id="btn-run-suite" class="btn-run-dark" type="button">▶ Ejecutar Suite (29/29)</button>
+          </div>
+
+          <div class="split-2">
+            <div class="dark-card anim-stagger" style="--stagger:1;">
+              <div class="suite-progress-row">
+                <div class="suite-track"><div id="suite-bar-fill" class="suite-fill"></div></div>
+                <strong id="suite-counter" class="suite-badge">29 / 29 PASS</strong>
+              </div>
+              <div id="pu-cards-list" class="pu-stack"></div>
+            </div>
+
+            <div class="dark-card anim-stagger" style="--stagger:2;">
+              <div class="ed-panel-head">
+                <h3>Simulador vivo: Tarifa y Custodia</h3>
+                <button id="sim-reset-pu" class="chip-btn-dark" type="button">Cargar PU-01/PU-02</button>
+              </div>
+
+              <div class="sim-inputs-dark">
+                <label><span>Base (COP)</span><input id="sim-base" type="number" value="50000" step="5000" min="10000" max="500000"></label>
+                <label><span>Mínimo</span><input id="sim-min" type="number" value="30000" step="5000" min="10000" max="500000"></label>
+                <label><span>Máximo</span><input id="sim-max" type="number" value="60000" step="5000" min="10000" max="500000"></label>
+              </div>
+
+              <div class="sim-toggles-dark">
+                <label class="toggle-dark"><input id="sim-urgente" type="checkbox" checked><span>Urgente (+30%)</span></label>
+                <label class="toggle-dark"><input id="sim-disputa" type="checkbox" checked><span>Estado: EN_DISPUTA</span></label>
+              </div>
+
+              <div class="gauge-dark">
+                <div class="gauge-top-row">
+                  <span id="gauge-formula">Bruto: $65.000 (+30%)</span>
+                  <strong id="gauge-final">$60.000 COP (Clamp Máx)</strong>
+                </div>
+                <div class="gauge-track-dark">
+                  <div id="gauge-fill" class="gauge-fill-dark"></div>
+                  <div id="gauge-marker" class="gauge-marker-dark"></div>
+                </div>
+                <div class="gauge-foot-row">
+                  <span id="lbl-min">$30.000</span>
+                  <span>Tope acotado [min, max]</span>
+                  <span id="lbl-max">$60.000</span>
+                </div>
+              </div>
+
+              <div id="vault-box" class="vault-dark locked">
+                <div class="vault-icon" id="vault-icon"></div>
+                <div class="vault-copy">
+                  <strong id="vault-title">Custodia BLOQUEADA · puedeLiberarCustodia() → false</strong>
+                  <span id="vault-sub">EN_DISPUTA impide liberarFondos() (PU-02)</span>
+                </div>
+                <span id="vault-badge" class="badge-block-dark">RETENIDO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 6 (LIGHT EDITORIAL): 7.4 PRUEBAS FUNCIONALES CON APP REAL
+           =============================================================== -->
+      <section class="slide" data-index="5" data-chapter="salome" data-surface="light" data-title="7.4 Pruebas Funcionales con App Real">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-salome">Salomé Toro Cadavid · Punto 7.4</span>
+              <h2>Pruebas funcionales E2E sobre pantallas reales de la app</h2>
+            </div>
+            <div class="pf-top-btns">
+              <button id="btn-play-pf" class="btn-play-light" type="button">▶ Simular Flujo</button>
+              <button id="btn-fail-pf" class="btn-warn-light" type="button">⚡ Simular Fallo</button>
+            </div>
+          </div>
+
+          <div class="pf-showcase-grid">
+            <!-- Left Smartphone Mockup with Real App Screenshots -->
+            <div class="phone-showcase anim-stagger" style="--stagger:1;">
+              <div class="phone-bezel">
+                <div class="phone-notch"></div>
+                <img id="pf-phone-img" src="assets/pf01_chat.png" alt="Pantalla real de A La Mano" class="phone-screen-img">
+                <div id="pf-phone-badge" class="phone-live-pill">Aceptada + Chat Activo</div>
+              </div>
+            </div>
+
+            <!-- Right Selector + Gherkin Stepper -->
+            <div class="pf-right-col anim-stagger" style="--stagger:2;">
+              <div class="pf-tabs-3" id="pf-tabs">
+                <button class="pf-tab-ed active" data-pf="pf01" type="button">
+                  <span>PF-01 · HU07/HU11</span>
+                  <strong>Solicitud, fotos &amp; chat</strong>
+                </button>
+                <button class="pf-tab-ed" data-pf="pf02" type="button">
+                  <span>PF-02 · HU10/13/14</span>
+                  <strong>PayPal Sandbox &amp; custodia</strong>
+                </button>
+                <button class="pf-tab-ed" data-pf="pf03" type="button">
+                  <span>PF-03 · HU02/03/05</span>
+                  <strong>Aprobación técnica</strong>
+                </button>
+              </div>
+              <div id="pf-stage" class="ed-card pf-detail-ed"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 7 (DARK SHOWSTOPPER): 7.5 SEGURIDAD & FARO VOXEL 3D
+           =============================================================== -->
+      <section class="slide" data-index="6" data-chapter="salome" data-surface="dark" data-title="7.5 Seguridad Verificada en Producción">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-salome">Salomé Toro Cadavid · Punto 7.5</span>
+              <h2>Blindaje verificado en Railway &amp; defensa contra amenazas</h2>
+            </div>
+            <span class="live-badge"><span class="ping-ring"></span>0 secretos filtrados en Git y logs</span>
+          </div>
+
+          <div class="security-split">
+            <div class="dark-card faro-hero-card anim-stagger" style="--stagger:1;">
+              <div class="voxel-card-head">
+                <span>FARO-BÓVEDA HMAC · RADAR VOLUMÉTRICO 3D</span>
+                <button id="btn-explode-faro" class="voxel-explode-btn" type="button">Explode 3D</button>
+              </div>
+              <div class="voxel-viewport faro-voxel-h">
+                <canvas id="voxel-faro" class="voxel-canvas" aria-label="Faro de seguridad Voxel 3D"></canvas>
+                <span class="voxel-drag-hint">Arrastra 360° · Haz clic en una amenaza →</span>
+              </div>
+              <div id="shield-alert-bar" class="shield-alert-bar">
+                <strong>AMENAZA INTERCEPTADA:</strong>
+                <span id="shield-status">URL firmada HMAC TTL 300s · /data/uploads no-root</span>
+              </div>
+            </div>
+
+            <div class="dark-card threat-right-card anim-stagger" style="--stagger:2;">
+              <div class="ed-panel-head">
+                <h3>5 Riesgos y evidencia real en producción</h3>
+                <span class="mono-dark">Clic para activar pulso</span>
+              </div>
+              <div id="sec-threats-list" class="sec-threats-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 8 (LIGHT EDITORIAL): 9.1 Y 9.2 AMY (STRICT MINIMALISTA)
+           =============================================================== -->
+      <section class="slide" data-index="7" data-chapter="amy" data-surface="light" data-title="9.1 Estructura del Equipo y Herramientas">
+        <div class="slide-canvas amy-clean-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-amy">Amy Herazo Bossa · Puntos 9.1 y 9.2</span>
+              <h2>Estructura del equipo y herramientas utilizadas</h2>
+            </div>
+            <span class="pill-light">4 Integrantes · Doc. y Release v2</span>
+          </div>
+
+          <div class="amy-label-ed anim-stagger" style="--stagger:1;">9.1 Estructura del equipo</div>
+          <div class="amy-team-4">
+            <article class="ed-card amy-member-ed anim-stagger" style="--stagger:2;">
+              <div class="amy-init av-salome">ST</div>
+              <h3>Salomé Toro Cadavid</h3>
+              <p>Calidad y pruebas</p>
+              <div class="amy-badges-row"><span>Doc: Punto 7</span><span>v2: 8.1 Front</span></div>
+            </article>
+            <article class="ed-card amy-member-ed amy-lead-ed anim-stagger" style="--stagger:3;">
+              <div class="amy-init av-amy">AH</div>
+              <h3>Amy Herazo Bossa</h3>
+              <p>Coordinación y backend</p>
+              <div class="amy-badges-row"><span>Doc: Punto 9</span><span>v2: 8.2 Back</span></div>
+            </article>
+            <article class="ed-card amy-member-ed anim-stagger" style="--stagger:4;">
+              <div class="amy-init av-santiago">SJ</div>
+              <h3>Santiago Jaramillo Valencia</h3>
+              <p>Presupuesto y BD</p>
+              <div class="amy-badges-row"><span>Doc: Punto 10</span><span>v2: 8.3 Base de datos</span></div>
+            </article>
+            <article class="ed-card amy-member-ed anim-stagger" style="--stagger:5;">
+              <div class="amy-init av-nataly">NL</div>
+              <h3>Nataly Lievano Arroyo</h3>
+              <p>Licenciamiento y derechos</p>
+              <div class="amy-badges-row"><span>Doc: Punto 11</span><span>v2: 8.4 Integración</span></div>
+            </article>
+          </div>
+
+          <div class="amy-label-ed anim-stagger" style="--stagger:5;">Herramientas utilizadas</div>
+          <div class="amy-tools-3-light">
+            <div class="ed-card tool-ed anim-stagger" style="--stagger:6;">
+              <strong>Gestión y diseño</strong>
+              <div class="tool-chips-ed"><span>Miro (USM y tablero)</span><span>GitHub</span></div>
+            </div>
+            <div class="ed-card tool-ed anim-stagger" style="--stagger:7;">
+              <strong>Comunicación</strong>
+              <div class="tool-chips-ed"><span>WhatsApp</span><span>Correo electrónico</span></div>
+            </div>
+            <div class="ed-card tool-ed anim-stagger" style="--stagger:8;">
+              <strong>Despliegue e infraestructura</strong>
+              <div class="tool-chips-ed"><span>Railway (Docker, PostgreSQL, Volume)</span><span>PayPal Sandbox</span><span>Expo SDK 58</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 9 (LIGHT EDITORIAL): 9.3 CRONOGRAMA & 9.4 HITOS (AMY MINIMALISTA)
+           =============================================================== -->
+      <section class="slide" data-index="8" data-chapter="amy" data-surface="light" data-title="9.3 Cronograma General y 9.4 Hitos">
+        <div class="slide-canvas amy-clean-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-amy">Amy Herazo Bossa · Puntos 9.3 y 9.4</span>
+              <h2>Cronograma general e hitos del proyecto</h2>
+            </div>
+            <span class="pill-light">23 sep – 3 dic · Haz clic en un hito</span>
+          </div>
+
+          <div class="ed-card gantt-ed-card anim-stagger" style="--stagger:1;">
+            <div class="ed-panel-head">
+              <h3>9.3 Cronograma general</h3>
+              <span class="mono-light">4 fases trazables</span>
+            </div>
+            <svg id="gantt-svg" viewBox="0 0 1000 225" class="gantt-svg" role="img" aria-label="Diagrama de Gantt del proyecto"></svg>
+          </div>
+
+          <div class="amy-label-ed anim-stagger" style="--stagger:2;">9.4 Hitos clave</div>
+          <div class="hitos-wrap-light anim-stagger" style="--stagger:3;">
+            <div class="hitos-rail-light"><div id="hitos-rail-fill" class="hitos-rail-fill-light"></div></div>
+            <div id="hitos-row" class="hitos-4">
+              <button class="ed-card hito-ed" data-hito="0" type="button">
+                <span class="h-tag">Entrega 1 · 1 oct</span>
+                <strong>Análisis y diseño inicial</strong>
+              </button>
+              <button class="ed-card hito-ed" data-hito="1" type="button">
+                <span class="h-tag">Entrega 2 · 5 nov</span>
+                <strong>Arquitectura, patrones y MVP</strong>
+              </button>
+              <button class="ed-card hito-ed active" data-hito="2" type="button">
+                <span class="h-tag h-today">Entrega 3 · 26 nov (HOY)</span>
+                <strong>Documentación (excepto punto 8)</strong>
+              </button>
+              <button class="ed-card hito-ed" data-hito="3" type="button">
+                <span class="h-tag">Implementación · 3 dic</span>
+                <strong>Código completo y Release v2</strong>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 10 (LIGHT EDITORIAL): 10 PRESUPUESTO DETALLADO
+           =============================================================== -->
+      <section class="slide" data-index="9" data-chapter="santiago" data-surface="light" data-title="10. Presupuesto por Rubros y Fuentes">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-santiago">Santiago Jaramillo Valencia · Punto 10</span>
+              <h2>Presupuesto por rubros y fuentes de financiación</h2>
+            </div>
+            <span class="pill-light pill-emerald-ed">Cifras COP verificadas</span>
+          </div>
+
+          <div class="kpi-row-light anim-stagger" style="--stagger:1;">
+            <div class="ed-card kpi-ed kpi-ed-primary">
+              <span>TOTAL DEL PROYECTO</span>
+              <strong id="kpi-total-num">$12.740.000 COP</strong>
+              <small>9 rubros cubiertos al 100%</small>
+            </div>
+            <div class="ed-card kpi-ed">
+              <span>RECURSOS PROPIOS (90,6%)</span>
+              <strong id="kpi-propios-num">$11.540.000 COP</strong>
+              <small>$11,2M en especie + $340K en efectivo</small>
+            </div>
+            <div class="ed-card kpi-ed">
+              <span>OTRAS FUENTES (9,4%)</span>
+              <strong id="kpi-otras-num">$1.200.000 COP</strong>
+              <small>Railway Trial, PayPal Sandbox, GitHub y UdeA</small>
+            </div>
+          </div>
+
+          <div class="ed-card panel-ed budget-card-light anim-stagger" style="--stagger:2;">
+            <div class="budget-toolbar-light">
+              <div class="tab-bar-light" id="budget-filters">
+                <button class="tab-light active" data-filter="all" type="button">Todos (9)</button>
+                <button class="tab-light" data-filter="propios" type="button">Recursos Propios</button>
+                <button class="tab-light" data-filter="otras" type="button">Otras Fuentes</button>
+                <button class="tab-light" data-filter="desembolso" type="button">Gasto Efectivo ($340K)</button>
+              </div>
+              <div class="subtotal-ed">
+                <span id="budget-subtotal-label">Subtotal (9 rubros):</span>
+                <strong id="budget-subtotal-val">$12.740.000 COP</strong>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="table-ed">
+                <thead>
+                  <tr>
+                    <th>Rubro y peso proporcional</th>
+                    <th class="num">Rec. Propios</th>
+                    <th class="num">Otras Fuentes</th>
+                    <th class="num">Total</th>
+                    <th>Sustento</th>
+                  </tr>
+                </thead>
+                <tbody id="budget-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 11 (LIGHT EDITORIAL): 10.1 DONUT + 10.2 ESCALA
+           =============================================================== -->
+      <section class="slide" data-index="10" data-chapter="santiago" data-surface="light" data-title="10.1 Viabilidad y 10.2 Proyección a Producción">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-santiago">Santiago Jaramillo Valencia · Puntos 10.1 y 10.2</span>
+              <h2>Viabilidad financiera real y proyección a piloto comercial</h2>
+            </div>
+            <span class="pill-light pill-emerald-ed">Solo 2,7% de desembolso efectivo</span>
+          </div>
+
+          <div class="split-2">
+            <div class="ed-card panel-ed anim-stagger" style="--stagger:1;">
+              <div class="ed-panel-head">
+                <h3>10.1 Descomposición de $12.740.000 COP</h3>
+                <span class="mono-light">Clic en segmento</span>
+              </div>
+              <div class="donut-grid-light">
+                <div class="donut-wrap-light">
+                  <svg id="donut-svg" viewBox="0 0 240 240" class="donut-svg"></svg>
+                  <div class="donut-center-light">
+                    <strong id="donut-center-val">87,9%</strong>
+                    <span id="donut-center-label">$11.200.000 COP</span>
+                  </div>
+                </div>
+                <div id="donut-legend" class="donut-legend-light"></div>
+              </div>
+            </div>
+
+            <div class="ed-card panel-ed anim-stagger" style="--stagger:2;">
+              <div class="ed-panel-head">
+                <h3>10.2 Escenarios de operación</h3>
+                <span class="mono-light">Académico → Piloto → Escala</span>
+              </div>
+              <div class="tab-bar-light" id="scenario-tabs">
+                <button class="tab-light active" data-scen="academico" type="button">Fase Académica</button>
+                <button class="tab-light" data-scen="piloto" type="button">Piloto Medellín</button>
+                <button class="tab-light" data-scen="escala" type="button">Multi-réplica</button>
+              </div>
+              <div id="scenario-detail" class="scen-body-light"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 12 (LIGHT EDITORIAL): 11.1 TÉRMINOS Y HABEAS DATA
+           =============================================================== -->
+      <section class="slide" data-index="11" data-chapter="nataly" data-surface="light" data-title="11.1 Términos de Uso y Habeas Data">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-nataly">Nataly Lievano Arroyo · Punto 11.1</span>
+              <h2>Reserva de derechos, 10 cláusulas de uso y Habeas Data</h2>
+            </div>
+            <span class="pill-light pill-amber-ed">Ley 1581 de 2012 · Colombia</span>
+          </div>
+
+          <div class="tab-bar-light anim-stagger" style="--stagger:1;" id="terms-tabs">
+            <button class="tab-light active" data-term="acceso" type="button">1–2 · Acceso y Uso</button>
+            <button class="tab-light" data-term="partes" type="button">3–4 · Profesional y Cliente</button>
+            <button class="tab-light" data-term="operacion" type="button">5–7 · Tarifas, Chat y Pagos</button>
+            <button class="tab-light" data-term="legal" type="button">8–10 · Disputas, Ley 1581 y Alcance</button>
+          </div>
+
+          <div id="terms-grid" class="terms-grid-light anim-stagger" style="--stagger:2;"></div>
+
+          <div class="ed-card terms-bottom-ed anim-stagger" style="--stagger:3;">
+            <div id="terms-index-strip" class="terms-index-light"></div>
+            <div class="habeas-strip-light">
+              <span class="hb-pill-light">LEY 1581 / HABEAS DATA</span>
+              <div class="hb-chain-light">
+                <span>1. Dato mínimo</span><i>→</i>
+                <span>2. Consentimiento</span><i>→</i>
+                <span>3. Uso estricto</span><i>→</i>
+                <span>4. Cero tarjetas / CVV</span><i>→</i>
+                <span>5. Acceso y supresión</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 13 (LIGHT EDITORIAL): 11.2 LICENCIA PROPIETARIA v1.0
+           =============================================================== -->
+      <section class="slide" data-index="12" data-chapter="nataly" data-surface="light" data-title="11.2 Licencia Propietaria de Uso v1.0">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker kicker-nataly">Nataly Lievano Arroyo · Punto 11.2</span>
+              <h2>Licencia del software: Versión 1.0 Propietaria de Uso</h2>
+            </div>
+            <span class="pill-light pill-amber-ed">Propiedad intelectual protegida</span>
+          </div>
+
+          <div class="ed-card license-hero-light anim-stagger" style="--stagger:1;">
+            <div class="lh-left">
+              <div class="lh-seal">§ 1.0</div>
+              <div>
+                <span class="kicker kicker-nataly">MODELO DE LICENCIAMIENTO OFICIAL</span>
+                <h3>A La Mano — Versión 1.0 Licencia Propietaria de Uso</h3>
+              </div>
+            </div>
+            <div class="lh-right">
+              <span>Autorización</span>
+              <strong>Solo canales oficiales A La Mano</strong>
+            </div>
+          </div>
+
+          <div class="license-cols-3">
+            <article class="ed-card lic-ed lic-ed-allow anim-stagger" style="--stagger:2;">
+              <div class="lic-ed-head"><span class="ico-allow">✓</span><h4>Permisos de uso</h4></div>
+              <ul>
+                <li>Uso autorizado a <strong>clientes y profesionales registrados</strong> mediante la app y servicios oficiales.</li>
+                <li>Acceso limitado estrictamente a contratar y ejecutar servicios dentro de la plataforma.</li>
+                <li><strong>No transfiere propiedad intelectual</strong> ni titularidad sobre el código o marca.</li>
+              </ul>
+            </article>
+
+            <article class="ed-card lic-ed lic-ed-deny anim-stagger" style="--stagger:3;">
+              <div class="lic-ed-head"><span class="ico-deny">✕</span><h4>Restricciones de código</h4></div>
+              <ul>
+                <li>Prohibido <strong>copiar, modificar, vender, sublicenciar o distribuir</strong> el código original.</li>
+                <li>Impide ingeniería inversa y explotación externa sin autorización expresa del equipo autor.</li>
+                <li>Resguarda los 5 módulos Spring Boot y la app móvil React Native Expo SDK 58.</li>
+              </ul>
+            </article>
+
+            <article class="ed-card lic-ed lic-ed-oss anim-stagger" style="--stagger:4;">
+              <div class="lic-ed-head"><span class="ico-oss">§</span><h4>Terceros y garantías</h4></div>
+              <ul>
+                <li>Dependencias Open Source (Spring Boot, PostgreSQL, Expo) conservan sus <strong>propias licencias OSS</strong>.</li>
+                <li><strong>No excluye deberes legales</strong> ni derechos irrenunciables del consumidor en Colombia.</li>
+                <li>Equilibrio limpio entre defensa de autoría y transparencia regulatoria.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===============================================================
+           SLIDE 14 (DARK SHOWSTOPPER): CIERRE TELEMÉTRICO + COHETE VOXEL 3D
+           =============================================================== -->
+      <section class="slide" data-index="13" data-chapter="cierre" data-surface="dark" data-title="Cierre Ejecutivo y Prueba Viva Railway">
+        <div class="slide-canvas">
+          <div class="keynote-head anim-stagger" style="--stagger:0;">
+            <div>
+              <span class="kicker">Cierre Ejecutivo · Preparación Release v2</span>
+              <h2>Ingeniería verificable, finanzas viables y respaldo legal</h2>
+            </div>
+            <span class="live-badge"><span class="ping-ring"></span>Meta Release v2 · 3 de diciembre (Punto 8)</span>
+          </div>
+
+          <div class="cierre-hero-grid">
+            <div class="cierre-left-col">
+              <div class="cierre-4-grid anim-stagger" style="--stagger:1;">
+                <div class="dark-card close-mini">
+                  <span class="l-badge bg-salome">P.7 · Salomé</span>
+                  <strong>29/29 Tests &amp; HMAC 300s</strong>
+                  <p>SOLID + PayPal Adapter, 0 secretos filtrados en Railway.</p>
+                </div>
+                <div class="dark-card close-mini">
+                  <span class="l-badge bg-amy">P.9 · Amy</span>
+                  <strong>Gestión &amp; Cronograma</strong>
+                  <p>4 roles Doc/v2 e hitos trazados al 3 de diciembre.</p>
+                </div>
+                <div class="dark-card close-mini">
+                  <span class="l-badge bg-santiago">P.10 · Santiago</span>
+                  <strong>$12.740.000 COP</strong>
+                  <p>Solo $340K en efectivo y piloto $150K–$250K/mes.</p>
+                </div>
+                <div class="dark-card close-mini">
+                  <span class="l-badge bg-nataly">P.11 · Nataly</span>
+                  <strong>Ley 1581 + v1.0</strong>
+                  <p>10 cláusulas, Habeas Data y Licencia Propietaria.</p>
+                </div>
+              </div>
+
+              <div class="dark-card telemetry-card anim-stagger" style="--stagger:2;">
+                <div class="telemetry-row">
+                  <div>
+                    <span class="kicker kicker-santiago">TELEMETRÍA EN VIVO · POSTGRESQL 18.7</span>
+                    <h3>Endpoint público en Railway (<code>/api/categorias</code>)</h3>
+                  </div>
+                  <button id="btn-ping-railway" class="btn-crimson-hero btn-sm" type="button">Consultar API en vivo</button>
+                </div>
+                <div id="railway-ping-result" class="telemetry-result">
+                  Listo para consultar categorías en vivo desde Railway.
+                </div>
+              </div>
+
+              <div class="cierre-signoff anim-stagger" style="--stagger:3;">
+                <strong>¡Muchas gracias! · Quedamos atentos a sus preguntas</strong>
+                <span>Docente: Joaquín Molina Pérez · Universidad de Antioquia · A&amp;D2 2026-2</span>
+              </div>
+            </div>
+
+            <div class="cierre-right-col anim-stagger" style="--stagger:2;">
+              <div class="voxel-hero-card rocket-hero-box">
+                <div class="voxel-card-head">
+                  <span>DESPEGUE RELEASE V2 · 3 DIC</span>
+                  <button id="btn-explode-cohete" class="voxel-explode-btn" type="button">Explode 3D</button>
+                </div>
+                <div class="voxel-viewport cohete-voxel-h">
+                  <canvas id="voxel-cohete" class="voxel-canvas" aria-label="Cohete Release v2 Voxel 3D"></canvas>
+                  <span class="voxel-drag-hint">Arrastra 360° · Doble clic desarma</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Executive HUD -->
+    <footer class="bottom-hud">
+      <button id="btn-prev" class="nav-arrow-btn" type="button" title="Anterior (←)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Anterior</span>
+      </button>
+
+      <div class="progress-zone">
+        <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+        <div id="slide-dots" class="slide-dots"></div>
+      </div>
+
+      <div class="bottom-right-meta">
+        <span id="slide-counter" class="slide-counter">01 / 14</span>
+        <button id="btn-next" class="nav-arrow-btn nav-arrow-next" type="button" title="Siguiente (→ / Espacio)">
+          <span>Siguiente</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Overview Grid Modal (G) -->
+  <div id="overview-modal" class="overview-modal" hidden role="dialog" aria-modal="true">
+    <div class="overview-dialog">
+      <div class="overview-header">
+        <div>
+          <h3>Mapa de la Sustentación · 14 Diapositivas</h3>
+          <p>Atajos: <kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>G</kbd> mapa · <kbd>N</kbd> notas · <kbd>F</kbd> pantalla completa</p>
+        </div>
+        <button id="btn-close-overview" class="hud-btn" type="button">Cerrar ✕</button>
+      </div>
+      <div id="overview-grid" class="overview-grid"></div>
+    </div>
+  </div>
+
+  <!-- Presenter Notes Drawer (N) — Oculto por defecto -->
+  <aside id="notes-drawer" class="notes-drawer" hidden aria-label="Notas del presentador">
+    <div class="notes-header">
+      <div>
+        <span id="notes-expositor" class="notes-expositor">Expositor</span>
+        <h3 id="notes-title">Libreto de diapositiva</h3>
+      </div>
+      <button id="btn-close-notes" class="hud-btn" type="button">✕</button>
+    </div>
+    <div id="notes-body" class="notes-body"></div>
+  </aside>
+
+  <script src="voxel-fx.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
