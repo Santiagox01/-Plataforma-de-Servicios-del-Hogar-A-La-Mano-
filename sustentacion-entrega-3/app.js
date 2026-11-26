@@ -97,99 +97,76 @@
      ---------------------------------------------------------------------- */
   const DEBT_DATA = [
     {
-      id: 'volume', x: 392, y: 72, sev: 'Alta · Escalabilidad', short: 'Volume 1-réplica',
-      title: 'Volume persistente acoplado a 1 instancia',
-      cause: 'LocalDiskStorageAdapter guarda archivos en /data/uploads (Volume de Railway). Aunque persiste tras redeploy, limita el backend a una sola instancia.',
-      fix: 'Cambiar STORAGE_TIPO hacia SupabaseStorageAdapter o Amazon S3 compartiendo objetos entre múltiples réplicas.'
+      id: 'docs',
+      num: '01',
+      title: 'Automatizar revisión documental',
+      desc: 'Hoy la verificación de documentos técnicos la realiza el administrador manualmente; a futuro se automatizará.'
     },
     {
-      id: 'paypal', x: 356, y: 122, sev: 'Alta · Pagos', short: 'PayPal 29 días',
-      title: 'Expiración de autorizaciones PayPal Sandbox',
-      cause: 'Las autorizaciones AUTHORIZE vencen a los 29 días (ventana recomendada de captura: 3 días) si un servicio tarda en confirmarse.',
-      fix: 'Agregar Spring Scheduler para monitorear vencimientos, emitir alertas y ejecutar reautorizaciones automáticas.'
+      id: 'concurrencia',
+      num: '02',
+      title: 'Control de concurrencia al aceptar',
+      desc: 'Controlar atómicamente que dos profesionales no puedan aceptar la misma solicitud en el mismo segundo.'
     },
     {
-      id: 'relaciones', x: 186, y: 175, sev: 'Media · Modelo', short: 'Relaciones por ID',
-      title: 'Relaciones Usuarios–Mensajes–Reportes por ID',
-      cause: 'Las asociaciones actuales entre usuarios, mensajes y reportes operan por identificador directo sin navegación enriquecida.',
-      fix: 'Incorporar índices compuestos y mapeos relacionales dedicados al crecer la concurrencia y auditoría.'
-    },
-    {
-      id: 'tarifa', x: 164, y: 226, sev: 'Media · Reglas', short: 'Tarifa estática',
-      title: 'Cálculo fijo base + recargo 30% por urgencia',
-      cause: 'Liquidación actual pondera tarifa base y factor 1.30 dentro de [min, max], sin distancia geodésica ni demanda horaria.',
-      fix: 'Enchufar nuevas implementaciones de ITarificacionStrategy (OCP) por zona y franja horaria.'
+      id: 'tarifas',
+      num: '03',
+      title: 'Tarifas por distancia y horarios',
+      desc: 'Evolucionar el cálculo actual para incorporar distancia geográfica y franjas horarias dinámicas.'
     }
   ];
 
-  const PU_ITEMS = [
-    { id: 'PU-01 · HU09', ms: '11ms', fn: 'CalculadorTarifa.calcularPrecioEstimado(true)', res: '$50.000 × 1.30 = $65.000 → acotado (clamp) a precioMax = $60.000 COP.' },
-    { id: 'PU-02 · HU10/14', ms: '8ms', fn: 'Solicitud.puedeLiberarCustodia()', res: 'En estado EN_DISPUTA ($85.000) retorna false y bloquea liberarFondos().' },
-    { id: 'PU-03 · HU02', ms: '14ms', fn: 'CreadorProfesional.crearUsuario(...)', res: 'Asigna PENDIENTE_VERIFICACION y disponible = false hasta revisión Admin.' },
-    { id: 'PU-04 · HU08', ms: '7ms', fn: 'Servicio.configurarTarifaBase(45k, 50k, 40k)', res: 'Rechaza por regla invariante precioMin > precioMax antes de persistir.' }
-  ];
-
-  const PF_DATA = {
-    pf01: {
-      img: 'assets/pf01_chat.png',
-      phoneBadge: 'Pendiente → Aceptada + Chat',
-      steps: [
-        { kw: '1. DADO QUE', text: 'Un cliente autenticado consulta electricistas verificados en Medellín y abre una nueva solicitud.' },
-        { kw: '2. CUANDO', text: 'Envía la orden con descripción del daño y 2 fotografías válidas al profesional elegido.' },
-        { kw: '3. ENTONCES', text: 'Nace en "Pendiente de respuesta"; al aceptarla el técnico pasa a "Aceptada", notifica y habilita el chat.' }
-      ],
-      states: ['Solicitada (2 fotos)', 'Pendiente', 'Aceptada + Chat ON'],
-      fail: 'Si falla el canal en tiempo real o excede tamaño máximo de foto, alerta claro y permite reintentar sin perder la solicitud.'
-    },
-    pf02: {
-      img: 'assets/pf02_escrow.png',
-      phoneBadge: 'PayPal APPROVED → Custodia',
-      steps: [
-        { kw: '1. DADO QUE', text: 'Un servicio en curso tiene registrado por el técnico un valor acordado de $60.000 COP.' },
-        { kw: '2. CUANDO', text: 'El cliente confirma "Finalizada" y autoriza el pago mediante PayPal Sandbox (o pasarela simulada).' },
-        { kw: '3. ENTONCES', text: 'El dinero queda en custodia (RETENIDO) hasta confirmar conformidad y pasar a LIBERADO.' }
-      ],
-      states: ['Finalizada ($60K)', 'PayPal APPROVED', 'RETENIDO', 'LIBERADO'],
-      fail: 'Ante rechazo o token expirado, informa al usuario, habilita reintento con idempotencia y evita cobros duplicados.'
-    },
-    pf03: {
+  const PF_JOURNEY = [
+    {
+      step: '01',
+      title: 'Búsqueda verificada',
+      badge: 'Solo técnicos verificados',
       img: 'assets/pf03_admin.png',
-      phoneBadge: 'Admin Aprueba → Catálogo',
-      steps: [
-        { kw: '1. DADO QUE', text: 'El técnico "Pedro" se registra en cerrajería (Envigado) en estado PENDIENTE_VERIFICACION.' },
-        { kw: '2. CUANDO', text: 'El cliente busca cerrajeros (no aparece); el admin aprueba su perfil y Pedro activa disponibilidad.' },
-        { kw: '3. ENTONCES', text: 'Solo tras quedar Verificado y disponible = true aparece en los resultados del catálogo.' }
-      ],
-      states: ['Pendiente (Oculto)', 'Admin Aprueba', 'Verificado + Disp.', 'Visible en Catálogo'],
-      fail: 'Si tras aprobar no se lista, el flujo revisa el filtro combinado (verificado && disponible) antes de cachear.'
+      desc: 'El cliente consulta la categoría y el catálogo muestra únicamente profesionales verificados.'
+    },
+    {
+      step: '02',
+      title: 'Solicitud del servicio',
+      badge: 'Orden registrada en backend',
+      img: 'assets/pf01_chat.png',
+      desc: 'Envía la solicitud con descripción de la falla y evidencias al profesional seleccionado.'
+    },
+    {
+      step: '03',
+      title: 'Aceptación y chat directo',
+      badge: 'Aceptada · Chat activo',
+      img: 'assets/pf01_chat.png',
+      desc: 'Al aceptar el profesional, la orden cambia de estado y se habilita el chat en tiempo real.'
+    },
+    {
+      step: '04',
+      title: 'Pago con Wompi y custodia',
+      badge: 'Wompi · Dinero en custodia',
+      img: 'assets/pf02_escrow.png',
+      desc: 'El cliente realiza el pago por Wompi y el dinero permanece retenido en custodia hasta cerrar bien el servicio.'
     }
-  };
+  ];
 
   const SECURITY_THREATS = [
     {
-      title: '1. Acceso no autorizado / Fuerza bruta',
-      badge: 'BLOQUEADO · JWT + 5 INTENTOS',
-      desc: 'Tokens JWT firmados, RBAC por rol y bloqueo temporal tras 5 intentos fallidos.'
+      title: '1. Control de acceso (JWT + Roles)',
+      badge: 'JWT + 5 INTENTOS',
+      desc: 'Tokens JWT y permisos estrictos según el rol (cliente, profesional o administrador), bloqueando cuentas tras 5 intentos fallidos.'
     },
     {
-      title: '2. Exposición documental en nube',
-      badge: 'BLOQUEADO · HMAC TTL 300s',
-      desc: 'URLs firmadas HMAC-SHA256 (5 min) sobre /data/uploads bajo usuario no-root "alamano" (SHA-256 verificado tras redeploy).'
+      title: '2. Protección de datos documentales',
+      badge: 'SUPABASE STORAGE',
+      desc: 'Almacenamiento externo seguro de documentos de identidad en Supabase Storage y no dentro de la base de datos principal.'
     },
     {
-      title: '3. Fraude en pagos o doble cobro',
-      badge: 'BLOQUEADO · PAYPAL REST v2',
-      desc: 'Validación server-side APPROVED en PayPal Sandbox (AUTHORIZE); jamás guarda tarjetas ni CVV.'
+      title: '3. Seguridad financiera (Wompi)',
+      badge: 'SIN DATOS BANCARIOS',
+      desc: 'Pagos delegados a Wompi sin guardar datos bancarios, manteniendo el dinero retenido en custodia hasta terminar bien el servicio.'
     },
     {
-      title: '4. Suplantación o filtración de secretos',
-      badge: 'BLOQUEADO · 0 LEAKS EN GIT/LOGS',
-      desc: '22 variables aisladas en Railway, logs auditados sin datos sensibles y AuditoriaAdministrativa inmutable.'
-    },
-    {
-      title: '5. Picos de tráfico concurrente',
-      badge: 'MITIGADO · POSTGRESQL 18.7',
-      desc: 'Consultas indexadas, respuestas paginadas y transición trazada hacia Object Storage multi-réplica.'
+      title: '4. Confianza y filtros de búsqueda',
+      badge: 'SOLO VERIFICADOS',
+      desc: 'Filtros estrictos que impiden que cualquier profesional sin verificación previa aparezca en las búsquedas de clientes.'
     }
   ];
 
@@ -267,19 +244,17 @@
 
   const SPEAKER_NOTES = [
     { expositor: 'Inicio · Todo el equipo', title: 'Apertura Entrega #3', points: ['Saludar al docente Joaquín Molina Pérez e introducir los Puntos 7, 9, 10 y 11.', 'Mostrar la Casa A La Mano en Voxel 3D interactivo y recordar que Release v2 (Punto 8) llega el 3 de diciembre.'], qa: 'Todo el ecosistema backend ya opera vivo en Railway Docker + PostgreSQL 18.7.' },
-    { expositor: 'Inicio · Hoja de Ruta', title: 'Estructura de la Defensa', points: ['Orden: Salomé (P.7) → Amy (P.9) → Santiago (P.10) → Nataly (P.11).'], qa: 'Alternancia limpia y demostraciones reales en cada punto.' },
-    { expositor: 'Salomé Toro · 7.1', title: 'SOLID y Swap PayPal ↔ Wompi', points: ['Alternar el botón PayPalAdapter ↔ WompiAdapter para demostrar DIP en vivo sin tocar el dominio.', 'Citar SRP (ServicioVerificacion, CalculadorTarifa), OCP (ITarificacionStrategy) y los 5 módulos Spring Boot.'], qa: 'Cambiar de pasarela o de Storage (STORAGE_TIPO) solo requiere un nuevo adaptador.' },
-    { expositor: 'Salomé Toro · 7.2', title: 'Radar de Deuda Técnica', points: ['Señalar los 2 ítems rojos de prioridad alta: Volume limitado a 1 instancia (/data/uploads) y ventana de 29 días en PayPal.'], qa: 'La solución para escalar horizontalmente es migrar STORAGE_TIPO a Supabase Storage o S3.' },
-    { expositor: 'Salomé Toro · 7.3', title: 'Suite JUnit 29/29 & Invariantes', points: ['Presionar "Ejecutar Suite (29/29)" en vivo.', 'Demostrar con el medidor cómo 50.000 × 1.30 = 65.000 queda acotado a $60.000 (PU-01) y cómo EN_DISPUTA cierra el candado (PU-02).'], qa: 'Validaciones de negocio protegidas siempre en backend.' },
-    { expositor: 'Salomé Toro · 7.4', title: 'Pruebas Funcionales con App Real', points: ['Alternar PF-01 (Chat), PF-02 (PayPal Sandbox Custodia) y PF-03 (Aprobación Admin) mirando las capturas reales en el celular.', 'Presionar "Simular Fallo" para explicar la idempotencia anti doble cobro.'], qa: 'Cada transición de estado se valida contra PostgreSQL 18.7.' },
-    { expositor: 'Salomé Toro · 7.5', title: 'Seguridad Verificada en Railway', points: ['Girar o explotar el Faro-Bóveda Voxel 3D mientras explicas las 5 evidencias concretas: JWT+5 intentos, HMAC TTL 300s (SHA-256 validado tras redeploy), PayPal server-side sin guardar tarjetas, 0 leaks y AuditoriaAdministrativa.'], qa: 'Todo el equipo auditó variables de entorno y logs en producción.' },
+    { expositor: 'Inicio · Hoja de Ruta', title: 'Estructura de la Defensa (12 diapos)', points: ['Orden: Salomé (Diapos 3–5) → Amy (6–7) → Santiago (8–9) → Nataly (10–11) → Cierre (12).'], qa: 'Bloques compactos con demostraciones en vivo en cada capítulo.' },
+    { expositor: 'Salomé Toro · Bloque 1 (7.1 y 7.2)', title: 'Calidad del código (SOLID) y Deuda Técnica', points: ['Spring Boot y React Native organizados en módulos independientes con única tarea por clase.', 'El módulo de pagos usa interfaces para operar hoy con Wompi y conectar otras pasarelas mañana sin dañar el código existente.', 'Deuda técnica futura: automatizar revisión de documentos, controlar aceptación concurrente al mismo segundo e incluir distancia y horarios en tarifas.'], qa: 'Las interfaces desacopladas permiten sustituir infraestructura sin reescribir reglas del dominio.' },
+    { expositor: 'Salomé Toro · Bloque 2 (7.3 y 7.4)', title: 'Pruebas Unitarias y Funcionales', points: ['Unitarias: tope automático cuando un servicio urgente supera el precio máximo, y bloqueo de dinero cuando hay disputa activa.', 'Funcionales: clic en "Simular recorrido real" para mostrar cliente → técnico verificado → solicitud → chat al aceptar → pago Wompi en custodia.'], qa: 'Las reglas críticas financieras se protegen siempre del lado del servidor.' },
+    { expositor: 'Salomé Toro · Bloque 3 (7.5)', title: 'Seguridad en 4 Frentes', points: ['Control de acceso: JWT + permisos por rol + bloqueo tras 5 intentos fallidos.', 'Datos: documentos en Supabase Storage fuera de la BD principal.', 'Finanzas: Wompi gestiona el pago sin guardar datos bancarios y retiene en custodia.', 'Confianza: filtros que excluyen técnicos no verificados de las búsquedas.'], qa: 'Puedes hacer clic en cada frente de seguridad para activar el pulso del Faro 3D.' },
     { expositor: 'Amy Herazo · 9.1 y 9.2', title: 'Equipo y Herramientas (Vista Minimalista)', points: ['Explicar oralmente la asignación de roles para el documento (Puntos 7, 9, 10, 11) y para Release v2 (8.1 Front, 8.2 Back, 8.3 BD, 8.4 Demo).'], qa: 'Metodología iterativa corta con tablero USM en Miro y trazabilidad en GitHub.' },
     { expositor: 'Amy Herazo · 9.3 y 9.4', title: 'Cronograma, Hitos y 9.5 Dependencias (Oral)', points: ['Recorrer las 4 barras hasta HOY (26 nov) y el cierre del 3 dic.', '9.5 Dependencias (solo referencia oral): (1) BD e Infra antes de pruebas integrales; (2) API Backend antes de integración móvil v2; (3) Despliegue Railway antes de validar pagos y seguridad.'], qa: 'El trabajo paralelo desde el 12 de noviembre asegura llegar completos a Release v2.' },
     { expositor: 'Santiago Jaramillo · 10', title: 'Presupuesto $12.740.000 COP', points: ['Filtrar "Gasto Efectivo ($340K)" para probar que solo salieron $320K en materiales y $20K en salidas de campo.', 'Aclarar internamente si en Google Docs los párrafos 10.1/10.2 aún muestran $120.000/$12.840.000: la tabla oficial actualizada suma $12.740.000 con $20.000 en salidas.'], qa: 'Transparencia absoluta entre valorización en especie y gasto real.' },
     { expositor: 'Santiago Jaramillo · 10.1 y 10.2', title: 'Donut Viabilidad y Proyección', points: ['Mostrar el 87,9% cubierto en especie.', 'Cambiar a "Piloto Medellín" ($150K–$250K/mes en Railway Hobby + ~$50K/año dominio) y "Multi-réplica".'], qa: 'Modelo ligero y económicamente sostenible para piloto comercial.' },
     { expositor: 'Nataly Lievano · 11.1', title: 'Términos y Habeas Data (Ley 1581)', points: ['Recorrer el mapa rápido de 10 cláusulas y explicar el ciclo inferior de Ley 1581 de 2012.', 'Recalcar que nunca se guardan tarjetas ni CVV.'], qa: 'Cumplimiento claro tanto para clientes como para técnicos verificados.' },
     { expositor: 'Nataly Lievano · 11.2', title: 'Licencia Propietaria de Uso v1.0', points: ['Explicar las 3 columnas: permisos de uso sin ceder autoría, prohibición de copiar o sublicenciar el código original, y respeto por licencias OSS de terceros.'], qa: 'Preserva derechos irrenunciables del consumidor colombiano.' },
-    { expositor: 'Cierre · Todo el equipo', title: 'Telemetría Railway + Cohete Release v2', points: ['Presionar "Consultar API en vivo" para evidenciar respuesta HTTP 200 desde PostgreSQL 18.7 si hay conexión en sala.', 'Cerrar invitando preguntas del docente Joaquín Molina Pérez.'], qa: 'Todo listo para concluir la fase 2 hacia el Release v2 el 3 de diciembre.' }
+    { expositor: 'Cierre · Todo el equipo', title: 'Telemetría Railway + Cohete Release v2', points: ['Presionar "Consultar API en vivo" para evidenciar respuesta HTTP 200 desde PostgreSQL 18.7.', 'Cerrar invitando preguntas del docente Joaquín Molina Pérez.'], qa: 'Todo listo para concluir la fase 2 hacia el Release v2 el 3 de diciembre.' }
   ];
 
   /* ----------------------------------------------------------------------
@@ -366,9 +341,9 @@
     }
     document.body.dataset.booted = '1';
 
-    if (next === 8 && ganttReplayFn) ganttReplayFn();
-    if (next === 9 && kpiCountFn) kpiCountFn();
-    if (next === 10 && donutAnimateFn) donutAnimateFn();
+    if (next === 6 && ganttReplayFn) ganttReplayFn();
+    if (next === 7 && kpiCountFn) kpiCountFn();
+    if (next === 8 && donutAnimateFn) donutAnimateFn();
   }
 
   function toggleOverview(force) {
@@ -443,50 +418,51 @@
   });
 
   /* ----------------------------------------------------------------------
-     4. SLIDE 3: 7.1 PIPELINE SVG CONTRASTADO (DARK MODE)
+     4. SLIDE 3 (SALOMÉ BLOQUE 1): SOLID + PIPELINE WOMPI + DEUDA TÉCNICA
      ---------------------------------------------------------------------- */
-  function initSlide3() {
+  function initSalomeSlide1() {
     const tabs = document.getElementById('adapter-swap-tabs');
     const svg = document.getElementById('pipeline-svg');
+    const debtList = document.getElementById('debt-list-3');
 
     function renderPipeline(adapterName) {
       const cfg = {
-        PayPalAdapter: { color: '#38bdf8', sub: 'REST v2 · AUTHORIZE (Live)' },
-        PasarelaSimulada: { color: '#34d399', sub: 'Determinista · Tests JUnit' },
-        WompiAdapter: { color: '#fbbf24', sub: 'Esqueleto listo extensible' }
-      }[adapterName] || { color: '#38bdf8', sub: 'Adaptador activo' };
+        WompiAdapter: { color: '#34d399', sub: 'Pasarela activa hoy' },
+        OtraPasarela: { color: '#38bdf8', sub: 'Extensible sin romper código' },
+        PasarelaSimulada: { color: '#fbbf24', sub: 'Pruebas deterministas' }
+      }[adapterName] || { color: '#34d399', sub: 'Adaptador activo' };
 
       svg.innerHTML = `
-        <path d="M 85 70 L 820 70" stroke="rgba(148, 163, 184, 0.28)" stroke-width="4" stroke-linecap="round"/>
-        <path class="flow-dash" d="M 85 70 L 820 70" stroke="${cfg.color}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 85 62 L 820 62" stroke="rgba(148, 163, 184, 0.28)" stroke-width="4" stroke-linecap="round"/>
+        <path class="flow-dash" d="M 85 62 L 820 62" stroke="${cfg.color}" stroke-width="3" stroke-linecap="round"/>
         <circle r="6" fill="#fb7185">
-          <animateMotion dur="2.2s" repeatCount="indefinite" path="M 85 70 L 820 70"/>
+          <animateMotion dur="2.2s" repeatCount="indefinite" path="M 85 62 L 820 62"/>
         </circle>
 
-        <g transform="translate(95,70)">
-          <rect x="-78" y="-34" width="156" height="68" rx="14" fill="rgba(15, 23, 42, 0.92)" stroke="rgba(148, 163, 184, 0.34)" stroke-width="2"/>
-          <text y="-4" text-anchor="middle" fill="#f8fafc" font-size="14" font-weight="800" font-family="Outfit, sans-serif">Expo App 58</text>
-          <text y="16" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">HTTPS + JWT</text>
+        <g transform="translate(95,62)">
+          <rect x="-78" y="-32" width="156" height="64" rx="13" fill="rgba(15, 23, 42, 0.92)" stroke="rgba(148, 163, 184, 0.34)" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#f8fafc" font-size="13.5" font-weight="800" font-family="Outfit, sans-serif">Expo React Native</text>
+          <text y="15" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">Frontend Limpio</text>
         </g>
-        <g transform="translate(285,70)">
-          <rect x="-82" y="-34" width="164" height="68" rx="14" fill="rgba(15, 23, 42, 0.92)" stroke="rgba(148, 163, 184, 0.34)" stroke-width="2"/>
-          <text y="-4" text-anchor="middle" fill="#f8fafc" font-size="14" font-weight="800" font-family="Outfit, sans-serif">Controller &amp; Service</text>
-          <text y="16" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">SRP + OCP Strategy</text>
+        <g transform="translate(285,62)">
+          <rect x="-82" y="-32" width="164" height="64" rx="13" fill="rgba(15, 23, 42, 0.92)" stroke="rgba(148, 163, 184, 0.34)" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#f8fafc" font-size="13.5" font-weight="800" font-family="Outfit, sans-serif">Spring Boot (SRP)</text>
+          <text y="15" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">Módulos Única Tarea</text>
         </g>
-        <g transform="translate(485,70)">
-          <rect x="-88" y="-38" width="176" height="76" rx="14" fill="rgba(225, 29, 72, 0.14)" stroke="#fb7185" stroke-dasharray="5 3" stroke-width="2"/>
-          <text y="-5" text-anchor="middle" fill="#fda4af" font-size="13.5" font-weight="800" font-family="JetBrains Mono, monospace">«IPasarelaPagos»</text>
-          <text y="16" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Plus Jakarta Sans, sans-serif">Contrato Dominio (DIP)</text>
+        <g transform="translate(485,62)">
+          <rect x="-88" y="-36" width="176" height="72" rx="13" fill="rgba(225, 29, 72, 0.14)" stroke="#fb7185" stroke-dasharray="5 3" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#fda4af" font-size="13.5" font-weight="800" font-family="JetBrains Mono, monospace">«IPasarelaPagos»</text>
+          <text y="15" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Plus Jakarta Sans, sans-serif">Interfaz Desacoplada</text>
         </g>
-        <g transform="translate(690,70)">
-          <rect x="-90" y="-38" width="180" height="76" rx="14" fill="rgba(15, 23, 42, 0.95)" stroke="${cfg.color}" stroke-width="2.6"/>
-          <text y="-5" text-anchor="middle" fill="${cfg.color}" font-size="14" font-weight="800" font-family="JetBrains Mono, monospace">${adapterName}</text>
-          <text y="16" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Plus Jakarta Sans, sans-serif">${cfg.sub}</text>
+        <g transform="translate(690,62)">
+          <rect x="-90" y="-36" width="180" height="72" rx="13" fill="rgba(15, 23, 42, 0.95)" stroke="${cfg.color}" stroke-width="2.6"/>
+          <text y="-4" text-anchor="middle" fill="${cfg.color}" font-size="14" font-weight="800" font-family="JetBrains Mono, monospace">${adapterName}</text>
+          <text y="15" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Plus Jakarta Sans, sans-serif">${cfg.sub}</text>
         </g>
-        <g transform="translate(855,70)">
-          <rect x="-56" y="-34" width="112" height="68" rx="14" fill="rgba(16, 185, 129, 0.16)" stroke="#34d399" stroke-width="2"/>
-          <text y="-4" text-anchor="middle" fill="#6ee7b7" font-size="13.5" font-weight="800" font-family="Outfit, sans-serif">PG 18.7</text>
-          <text y="16" text-anchor="middle" fill="#a7f3d0" font-size="11" font-family="JetBrains Mono, monospace">ACID Flyway</text>
+        <g transform="translate(855,62)">
+          <rect x="-56" y="-32" width="112" height="64" rx="13" fill="rgba(16, 185, 129, 0.16)" stroke="#34d399" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#6ee7b7" font-size="13.5" font-weight="800" font-family="Outfit, sans-serif">PostgreSQL</text>
+          <text y="15" text-anchor="middle" fill="#a7f3d0" font-size="11" font-family="JetBrains Mono, monospace">Datos Seguros</text>
         </g>
       `;
     }
@@ -499,118 +475,32 @@
       btn.classList.add('active');
       renderPipeline(btn.dataset.adapter);
     });
+    renderPipeline('WompiAdapter');
 
-    renderPipeline('PayPalAdapter');
-  }
-
-  /* ----------------------------------------------------------------------
-     5. SLIDE 4: 7.2 CUADRANTE 2x2 DARK
-     ---------------------------------------------------------------------- */
-  function initSlide4() {
-    const svg = document.getElementById('debt-quadrant-svg');
-    const strip = document.getElementById('debt-selector-strip');
-    const detail = document.getElementById('debt-detail');
-
-    strip.innerHTML = DEBT_DATA.map((d, i) => `
-      <button class="debt-chip-ed ${i === 0 ? 'active' : ''}" data-debt="${d.id}" type="button">${d.short}</button>
-    `).join('');
-
-    function selectDebt(id) {
-      const d = DEBT_DATA.find(x => x.id === id) || DEBT_DATA[0];
-      strip.querySelectorAll('.debt-chip-ed').forEach(b => b.classList.toggle('active', b.dataset.debt === d.id));
-
-      svg.innerHTML = `
-        <rect x="52" y="18" width="446" height="242" rx="14" fill="rgba(6, 10, 20, 0.72)" stroke="rgba(148, 163, 184, 0.28)" stroke-width="1.5"/>
-        <rect x="275" y="18" width="223" height="121" fill="rgba(225, 29, 72, 0.16)"/>
-        <line x1="275" y1="18" x2="275" y2="260" stroke="rgba(148, 163, 184, 0.28)" stroke-dasharray="4 4"/>
-        <line x1="52" y1="139" x2="498" y2="139" stroke="rgba(148, 163, 184, 0.28)" stroke-dasharray="4 4"/>
-        <text x="386" y="38" text-anchor="middle" fill="#fda4af" font-size="11" font-weight="800" font-family="JetBrains Mono, monospace">PRIORIDAD ALTA</text>
-        <text x="275" y="285" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700" font-family="Plus Jakarta Sans, sans-serif">Impacto en Escalabilidad / Negocio →</text>
-        <text x="24" y="142" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700" transform="rotate(-90 24 142)" font-family="Plus Jakarta Sans, sans-serif">Criticidad →</text>
-        ${DEBT_DATA.map(item => {
-          const active = item.id === d.id;
-          const col = item.x > 275 ? '#fb7185' : '#fbbf24';
-          return `
-            <g class="q-node" data-debt="${item.id}" style="cursor:pointer;">
-              ${active ? `<circle cx="${item.x}" cy="${item.y}" r="22" fill="none" stroke="${col}" stroke-width="2"><animate attributeName="r" values="12;25;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.85;0.12;0.85" dur="2s" repeatCount="indefinite"/></circle>` : ''}
-              <circle cx="${item.x}" cy="${item.y}" r="${active ? 10 : 7}" fill="${col}" stroke="#f8fafc" stroke-width="2.2"/>
-              <text x="${item.x}" y="${item.y + 24}" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="${active ? '800' : '600'}" font-family="Plus Jakarta Sans, sans-serif">${item.short}</text>
-            </g>
-          `;
-        }).join('')}
-      `;
-
-      detail.innerHTML = `
-        <div class="debt-card-inner">
-          <span>Hallazgo · ${d.sev}</span>
-          <h4>${d.title}</h4>
-          <p>${d.cause}</p>
-        </div>
-        <div class="debt-card-inner debt-card-fix">
-          <span>Resolución arquitectónica recomendada</span>
-          <p>${d.fix}</p>
-        </div>
-      `;
-    }
-
-    strip.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-debt]');
-      if (btn) { window.VoxelFX?.StudioSFX?.tap(); selectDebt(btn.dataset.debt); }
-    });
-    svg.addEventListener('click', (e) => {
-      const node = e.target.closest('.q-node');
-      if (node) { window.VoxelFX?.StudioSFX?.tap(); selectDebt(node.dataset.debt); }
-    });
-    selectDebt(DEBT_DATA[0].id);
-  }
-
-  /* ----------------------------------------------------------------------
-     6. SLIDE 5: 7.3 RUNNER 29/29 & MEDIDOR TARIFA + BÓVEDA (DARK)
-     ---------------------------------------------------------------------- */
-  function initSlide5() {
-    const listWrap = document.getElementById('pu-cards-list');
-    const barFill = document.getElementById('suite-bar-fill');
-    const counter = document.getElementById('suite-counter');
-    const btnRun = document.getElementById('btn-run-suite');
-
-    function renderPuCards(activeIdx, passedCount) {
-      listWrap.innerHTML = PU_ITEMS.map((item, i) => {
-        const cls = i === activeIdx ? 'running' : (i < passedCount ? 'passed' : '');
-        const tag = i === activeIdx ? 'RUN...' : (i < passedCount ? `PASS · ${item.ms}` : 'WAIT');
-        return `
-          <div class="pu-item ${cls}">
-            <div class="pu-top"><strong>${item.id} · <code>${item.fn}</code></strong><span class="pu-ms">${tag}</span></div>
-            <p>${item.res}</p>
+    function renderDebts(activeId) {
+      debtList.innerHTML = DEBT_DATA.map(d => `
+        <button class="debt-future-card ${d.id === activeId ? 'active' : ''}" data-debt="${d.id}" type="button">
+          <div class="debt-future-head">
+            <span class="st-num">${d.num}</span>
+            <strong>${d.title}</strong>
           </div>
-        `;
-      }).join('');
+          <p>${d.desc}</p>
+        </button>
+      `).join('');
     }
-    renderPuCards(-1, 4);
-
-    btnRun.addEventListener('click', () => {
-      btnRun.disabled = true;
-      barFill.style.width = '6%';
-      counter.textContent = '0 / 29...';
-      renderPuCards(0, 0);
-
-      PU_ITEMS.forEach((_, idx) => {
-        setTimeout(() => {
-          renderPuCards(idx, idx);
-          barFill.style.width = `${Math.round(((idx + 1) / PU_ITEMS.length) * 100)}%`;
-          counter.textContent = `${Math.round(((idx + 1) / PU_ITEMS.length) * 29)} / 29...`;
-          if (idx === PU_ITEMS.length - 1) {
-            setTimeout(() => {
-              renderPuCards(-1, 4);
-              barFill.style.width = '100%';
-              counter.textContent = '29 / 29 PASS ✓';
-              window.VoxelFX?.StudioSFX?.pass();
-              btnRun.disabled = false;
-            }, 220);
-          }
-        }, idx * 200);
-      });
+    debtList.addEventListener('click', (e) => {
+      const card = e.target.closest('[data-debt]');
+      if (!card) return;
+      window.VoxelFX?.StudioSFX?.tap();
+      renderDebts(card.dataset.debt);
     });
+    renderDebts(DEBT_DATA[0].id);
+  }
 
+  /* ----------------------------------------------------------------------
+     5. SLIDE 4 (SALOMÉ BLOQUE 2): PRUEBAS UNITARIAS + RECORRIDO FUNCIONAL
+     ---------------------------------------------------------------------- */
+  function initSalomeSlide2() {
     const baseEl = document.getElementById('sim-base');
     const minEl = document.getElementById('sim-min');
     const maxEl = document.getElementById('sim-max');
@@ -635,7 +525,7 @@
 
       if (min > max) {
         gaugeFormula.textContent = `Inválido: ${fmt(min)} > ${fmt(max)}`;
-        gaugeFinal.textContent = 'PU-04 Exception!';
+        gaugeFinal.textContent = 'Regla rechazada';
         gaugeFinal.style.color = '#fecdd3';
         gaugeFill.style.width = '100%';
         gaugeMarker.style.left = '96%';
@@ -644,7 +534,7 @@
         const clamped = Math.max(min, Math.min(max, raw));
         const pct = max === min ? 100 : Math.max(4, Math.min(98, ((clamped - min) / (max - min)) * 100));
         gaugeFormula.textContent = `Bruto: ${fmt(raw)}${urg ? ' (+30%)' : ''}`;
-        gaugeFinal.textContent = `${fmt(clamped)} COP${clamped !== raw ? ' (Clamp Máx)' : ''}`;
+        gaugeFinal.textContent = `${fmt(clamped)} COP${clamped !== raw ? ' (Límite Máx)' : ''}`;
         gaugeFinal.style.color = '#6ee7b7';
         gaugeFill.style.width = `${pct}%`;
         gaugeMarker.style.left = `${pct}%`;
@@ -659,15 +549,15 @@
       if (disp) {
         vaultBox.className = 'vault-dark locked';
         vaultIcon.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fb7185" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
-        vaultTitle.textContent = 'Custodia BLOQUEADA · puedeLiberarCustodia() → false';
-        vaultSub.textContent = 'EN_DISPUTA impide liberarFondos() (PU-02)';
+        vaultTitle.textContent = 'Custodia BLOQUEADA · Disputa activa';
+        vaultSub.textContent = 'Impide liberar fondos mientras exista controversia';
         vaultBadge.className = 'badge-block-dark';
         vaultBadge.textContent = 'RETENIDO';
       } else {
         vaultBox.className = 'vault-dark unlocked';
         vaultIcon.innerHTML = `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#34d399" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`;
-        vaultTitle.textContent = 'Custodia DESBLOQUEADA · puedeLiberarCustodia() → true';
-        vaultSub.textContent = 'Servicio Finalizado: liberación habilitada';
+        vaultTitle.textContent = 'Custodia DESBLOQUEADA · Sin disputa';
+        vaultSub.textContent = 'Servicio conforme: liberación habilitada al profesional';
         vaultBadge.className = 'badge-ok-dark';
         vaultBadge.textContent = 'LIBERADO ✓';
       }
@@ -676,92 +566,58 @@
     [baseEl, minEl, maxEl, urgEl].forEach(el => el.addEventListener('input', updateSandbox));
     dispEl.addEventListener('input', () => { updateSandbox(); window.VoxelFX?.StudioSFX?.lock(dispEl.checked); });
     document.getElementById('sim-reset-pu').addEventListener('click', () => {
+      window.VoxelFX?.StudioSFX?.tap();
       baseEl.value = 50000; minEl.value = 30000; maxEl.value = 60000; urgEl.checked = true; dispEl.checked = true;
       updateSandbox();
     });
     updateSandbox();
-  }
 
-  /* ----------------------------------------------------------------------
-     7. SLIDE 6: 7.4 APP REAL EN SMARTPHONE + GHERKIN
-     ---------------------------------------------------------------------- */
-  function initSlide6() {
-    const tabs = document.getElementById('pf-tabs');
-    const stage = document.getElementById('pf-stage');
+    const journeyWrap = document.getElementById('pf-journey-steps');
     const phoneImg = document.getElementById('pf-phone-img');
     const phoneBadge = document.getElementById('pf-phone-badge');
     const btnPlay = document.getElementById('btn-play-pf');
-    const btnFail = document.getElementById('btn-fail-pf');
-    let key = 'pf01';
-    let step = 2;
-    let failMode = false;
 
-    function render() {
-      const d = PF_DATA[key];
-      phoneImg.src = d.img;
-      phoneBadge.textContent = failMode ? '⚡ Contingencia / Idempotencia activa' : d.states[Math.min(step, d.states.length - 1)] || d.phoneBadge;
-
-      stage.innerHTML = `
-        <div class="pf-steps-light">
-          ${d.steps.map((s, i) => `
-            <div class="pf-step-ed ${i === step ? 'active' : ''}" data-step="${i}">
-              <div class="pf-kw-ed">${s.kw}</div>
-              <p>${s.text}</p>
-            </div>
-          `).join('')}
-        </div>
-        <div class="pf-footer-ed ${failMode ? 'fail' : ''}">
-          <div style="flex:1;">
-            <strong style="display:block;font-size:0.84rem;color:${failMode ? '#fde68a' : '#f8fafc'};margin-bottom:3px;">
-              ${failMode ? '⚡ Plan de contingencia ante fallo:' : 'Transición de estados verificada:'}
-            </strong>
-            <span style="font-size:0.88rem;color:#cbd5e1;">${failMode ? d.fail : 'Ejecución validada en la app móvil y API PostgreSQL.'}</span>
+    function setJourneyStep(idx, withSound) {
+      const item = PF_JOURNEY[idx] || PF_JOURNEY[0];
+      phoneImg.src = item.img;
+      phoneBadge.textContent = item.badge;
+      journeyWrap.innerHTML = PF_JOURNEY.map((s, i) => `
+        <button class="pf-j-step ${i === idx ? 'active' : ''}" data-j="${i}" type="button">
+          <div class="pf-j-num">${s.step}</div>
+          <div>
+            <strong>${s.title}</strong>
+            <p>${s.desc}</p>
           </div>
-          <div class="pf-state-badges">
-            ${d.states.map((st, idx) => `<span class="st-badge-ed ${idx <= step && !failMode ? 'lit' : ''}">${st}</span>`).join('')}
-          </div>
-        </div>
-      `;
-
-      stage.querySelectorAll('.pf-step-ed').forEach(c => {
-        c.addEventListener('click', () => { step = Number(c.dataset.step); failMode = false; btnFail.classList.remove('active'); render(); });
-      });
+        </button>
+      `).join('');
+      if (withSound) window.VoxelFX?.StudioSFX?.tap();
     }
 
-    tabs.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-pf]');
-      if (!btn) return;
-      window.VoxelFX?.StudioSFX?.tap();
-      tabs.querySelectorAll('.pf-tab-ed').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      key = btn.dataset.pf;
-      step = 2;
-      failMode = false;
-      btnFail.classList.remove('active');
-      render();
+    journeyWrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-j]');
+      if (btn) setJourneyStep(Number(btn.dataset.j), true);
     });
 
     btnPlay.addEventListener('click', () => {
-      failMode = false; btnFail.classList.remove('active'); btnPlay.disabled = true;
-      step = 0; render();
-      setTimeout(() => { step = 1; render(); }, 650);
-      setTimeout(() => { step = 2; render(); window.VoxelFX?.StudioSFX?.pass(); btnPlay.disabled = false; }, 1300);
+      btnPlay.disabled = true;
+      [0, 1, 2, 3].forEach((stepIdx, k) => {
+        setTimeout(() => {
+          setJourneyStep(stepIdx, stepIdx < 3);
+          if (stepIdx === 3) {
+            window.VoxelFX?.StudioSFX?.pass();
+            btnPlay.disabled = false;
+          }
+        }, k * 650);
+      });
     });
 
-    btnFail.addEventListener('click', () => {
-      failMode = !failMode;
-      btnFail.classList.toggle('active', failMode);
-      window.VoxelFX?.StudioSFX?.alert();
-      render();
-    });
-
-    render();
+    setJourneyStep(0, false);
   }
 
   /* ----------------------------------------------------------------------
-     8. SLIDE 7: 7.5 SEGURIDAD & FARO VOXEL 3D
+     6. SLIDE 5 (SALOMÉ BLOQUE 3): 7.5 SEGURIDAD & FARO VOXEL 3D
      ---------------------------------------------------------------------- */
-  function initSlide7() {
+  function initSalomeSlide3() {
     const listWrap = document.getElementById('sec-threats-list');
     const statusTag = document.getElementById('shield-status');
 
@@ -776,7 +632,7 @@
     }
 
     listWrap.innerHTML = SECURITY_THREATS.map((t, i) => `
-      <button class="sec-threat-btn ${i === 1 ? 'active' : ''}" data-t="${i}" type="button">
+      <button class="sec-threat-btn ${i === 0 ? 'active' : ''}" data-t="${i}" type="button">
         <div class="st-num">0${i + 1}</div>
         <div>
           <strong>${t.title} · <span style="color:#6ee7b7;font-family:JetBrains Mono,monospace;font-size:0.78rem;">${t.badge}</span></strong>
@@ -790,7 +646,7 @@
       if (btn) selectThreat(Number(btn.dataset.t), true);
     });
 
-    selectThreat(1, false);
+    selectThreat(0, false);
   }
 
   /* ----------------------------------------------------------------------
@@ -1156,14 +1012,14 @@
         canvasId: 'voxel-faro',
         explodeBtnId: 'btn-explode-faro',
         model: 'faro',
-        slideIndex: 6,
+        slideIndex: 4,
         glowColor: 'rgba(16, 185, 129, 0.24)'
       });
       window.VoxelFX.mountVoxelCanvas({
         canvasId: 'voxel-cohete',
         explodeBtnId: 'btn-explode-cohete',
         model: 'cohete',
-        slideIndex: 13,
+        slideIndex: 11,
         glowColor: 'rgba(225, 29, 72, 0.26)'
       });
       window.VoxelFX.startVoxelLoop(() => currentSlide);
@@ -1177,11 +1033,9 @@
   buildChrome();
   initTimer();
   initSfxAndVoxels();
-  initSlide3();
-  initSlide4();
-  initSlide5();
-  initSlide6();
-  initSlide7();
+  initSalomeSlide1();
+  initSalomeSlide2();
+  initSalomeSlide3();
   initSlide9();
   initSlide10();
   initSlide11();

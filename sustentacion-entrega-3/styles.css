@@ -802,9 +802,109 @@ kbd {
 .note-block { padding: 13px; border-radius: 12px; background: rgba(30, 41, 59, 0.72); border: 1px solid rgba(148, 163, 184, 0.2); }
 .note-block strong { display: block; font-size: 0.76rem; text-transform: uppercase; color: #fff; margin-bottom: 5px; }
 
+/* ==========================================================================
+   SALOMÉ · 3 BLOQUES COMPACTOS (DIAPOS 3, 4 Y 5)
+   ========================================================================== */
+.salome-b1-pipeline { padding: 10px 18px; flex-shrink: 0; }
+.pipeline-svg-compact { width: 100%; height: auto; max-height: 112px; display: block; }
+.salome-b1-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.solid-list-compact,
+.debt-list-3 {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.solid-row-item,
+.debt-future-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 13px 16px;
+  border-radius: 13px;
+  background: rgba(6, 10, 20, 0.72);
+  border: 1px solid var(--border-dark);
+}
+.solid-row-item strong { font-size: 1rem; color: var(--ink); }
+.solid-row-item p,
+.debt-future-card p { font-size: 0.88rem; color: var(--ink-body); line-height: 1.44; }
+.solid-row-item p strong { font-size: inherit; color: #f8fafc; }
+
+.debt-future-card { text-align: left; cursor: pointer; transition: all 0.2s ease; }
+.debt-future-card:hover { border-color: rgba(251, 113, 133, 0.45); }
+.debt-future-card.active {
+  border-color: #fb7185;
+  background: rgba(225, 29, 72, 0.14);
+  box-shadow: 0 8px 22px rgba(225, 29, 72, 0.14);
+}
+.debt-future-head { display: flex; align-items: center; gap: 10px; }
+.debt-future-head .st-num {
+  background: rgba(225, 29, 72, 0.2);
+  color: #fda4af;
+}
+.debt-future-head strong { font-size: 0.98rem; color: var(--ink); }
+
+.salome-b2-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.02fr 0.98fr; gap: 18px; }
+.unit-sim-card { justify-content: space-between; gap: 10px; }
+.unit-rules-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ur-pill {
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: rgba(6, 10, 20, 0.72);
+  border: 1px solid rgba(52, 211, 153, 0.34);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ur-pill strong { font-size: 0.86rem; color: #6ee7b7; font-family: var(--font-mono); }
+.ur-pill span { font-size: 0.8rem; color: var(--ink-body); }
+
+.func-flow-card { justify-content: space-between; gap: 12px; }
+.func-inner-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: 204px 1fr; gap: 16px; align-items: center; }
+.phone-bezel-sm { width: 196px; height: 374px; border-radius: 28px; padding: 8px; }
+.phone-bezel-sm .phone-notch { width: 74px; height: 12px; top: 12px; }
+.phone-bezel-sm .phone-screen-img { border-radius: 20px; }
+.phone-bezel-sm .phone-live-pill { bottom: 14px; left: 12px; right: 12px; font-size: 0.68rem; }
+
+.pf-journey-steps { height: 100%; display: flex; flex-direction: column; justify-content: space-between; gap: 9px; }
+.pf-j-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--border-dark);
+  background: rgba(6, 10, 20, 0.72);
+  text-align: left;
+  cursor: pointer;
+  color: var(--ink);
+  transition: all 0.2s ease;
+}
+.pf-j-step:hover { border-color: rgba(251, 113, 133, 0.45); }
+.pf-j-step.active {
+  border-color: #fb7185;
+  background: rgba(225, 29, 72, 0.16);
+  transform: translateX(3px);
+}
+.pf-j-num {
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+  display: grid; place-items: center;
+  background: rgba(225, 29, 72, 0.2); color: #fda4af;
+  font-family: var(--font-mono); font-size: 0.76rem; font-weight: 800;
+}
+.pf-j-step strong { display: block; font-size: 0.92rem; margin-bottom: 2px; color: #f8fafc; }
+.pf-j-step p { font-size: 0.81rem; color: var(--ink-body); line-height: 1.38; }
+
 @media (max-width: 1080px) {
   .chapter-nav { display: none; }
-  .cover-hero-grid, .cover-team-strip, .agenda-cards-4, .solid-trio, .split-2, .pf-showcase-grid, .pf-tabs-3, .pf-steps-light, .security-split, .amy-team-4, .amy-tools-3-light, .hitos-4, .kpi-row-light, .donut-grid-light, .terms-index-light, .license-cols-3, .cierre-hero-grid, .cierre-4-grid, .overview-grid {
+  .cover-hero-grid, .cover-team-strip, .agenda-cards-4, .solid-trio, .split-2, .salome-b1-grid, .salome-b2-grid, .func-inner-grid, .unit-rules-mini, .pf-showcase-grid, .pf-tabs-3, .pf-steps-light, .security-split, .amy-team-4, .amy-tools-3-light, .hitos-4, .kpi-row-light, .donut-grid-light, .terms-index-light, .license-cols-3, .cierre-hero-grid, .cierre-4-grid, .overview-grid {
     grid-template-columns: 1fr;
   }
 }
