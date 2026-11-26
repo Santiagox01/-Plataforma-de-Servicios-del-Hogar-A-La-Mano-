@@ -140,10 +140,10 @@
     },
     {
       step: '04',
-      title: 'Pago con Wompi y custodia',
-      badge: 'Wompi · Dinero en custodia',
+      title: 'Pago con PayPal y custodia',
+      badge: 'PayPal · Dinero en custodia',
       img: 'assets/pf02_escrow.png',
-      desc: 'El cliente realiza el pago por Wompi y el dinero permanece retenido en custodia hasta cerrar bien el servicio.'
+      desc: 'El cliente realiza el pago por PayPal y el dinero permanece retenido en custodia hasta cerrar bien el servicio.'
     }
   ];
 
@@ -159,9 +159,9 @@
       desc: 'Almacenamiento externo seguro de documentos de identidad en Supabase Storage y no dentro de la base de datos principal.'
     },
     {
-      title: '3. Seguridad financiera (Wompi)',
+      title: '3. Seguridad financiera (PayPal)',
       badge: 'SIN DATOS BANCARIOS',
-      desc: 'Pagos delegados a Wompi sin guardar datos bancarios, manteniendo el dinero retenido en custodia hasta terminar bien el servicio.'
+      desc: 'Pagos delegados a PayPal sin guardar datos bancarios, manteniendo el dinero retenido en custodia hasta terminar bien el servicio.'
     },
     {
       title: '4. Confianza y filtros de búsqueda',
@@ -245,9 +245,9 @@
   const SPEAKER_NOTES = [
     { expositor: 'Inicio · Todo el equipo', title: 'Apertura Entrega #3', points: ['Saludar al docente Joaquín Molina Pérez e introducir los Puntos 7, 9, 10 y 11.', 'Mostrar la Casa A La Mano en Voxel 3D interactivo y recordar que Release v2 (Punto 8) llega el 3 de diciembre.'], qa: 'Todo el ecosistema backend ya opera vivo en Railway Docker + PostgreSQL 18.7.' },
     { expositor: 'Inicio · Hoja de Ruta', title: 'Estructura de la Defensa (12 diapos)', points: ['Orden: Salomé (Diapos 3–5) → Amy (6–7) → Santiago (8–9) → Nataly (10–11) → Cierre (12).'], qa: 'Bloques compactos con demostraciones en vivo en cada capítulo.' },
-    { expositor: 'Salomé Toro · Bloque 1 (7.1 y 7.2)', title: 'Calidad del código (SOLID) y Deuda Técnica', points: ['Spring Boot y React Native organizados en módulos independientes con única tarea por clase.', 'El módulo de pagos usa interfaces para operar hoy con Wompi y conectar otras pasarelas mañana sin dañar el código existente.', 'Deuda técnica futura: automatizar revisión de documentos, controlar aceptación concurrente al mismo segundo e incluir distancia y horarios en tarifas.'], qa: 'Las interfaces desacopladas permiten sustituir infraestructura sin reescribir reglas del dominio.' },
-    { expositor: 'Salomé Toro · Bloque 2 (7.3 y 7.4)', title: 'Pruebas Unitarias y Funcionales', points: ['Unitarias: tope automático cuando un servicio urgente supera el precio máximo, y bloqueo de dinero cuando hay disputa activa.', 'Funcionales: clic en "Simular recorrido real" para mostrar cliente → técnico verificado → solicitud → chat al aceptar → pago Wompi en custodia.'], qa: 'Las reglas críticas financieras se protegen siempre del lado del servidor.' },
-    { expositor: 'Salomé Toro · Bloque 3 (7.5)', title: 'Seguridad en 4 Frentes', points: ['Control de acceso: JWT + permisos por rol + bloqueo tras 5 intentos fallidos.', 'Datos: documentos en Supabase Storage fuera de la BD principal.', 'Finanzas: Wompi gestiona el pago sin guardar datos bancarios y retiene en custodia.', 'Confianza: filtros que excluyen técnicos no verificados de las búsquedas.'], qa: 'Puedes hacer clic en cada frente de seguridad para activar el pulso del Faro 3D.' },
+    { expositor: 'Salomé Toro · Bloque 1 (7.1 y 7.2)', title: 'Calidad del código (SOLID) y Deuda Técnica', points: ['Spring Boot y React Native organizados en módulos independientes con única tarea por clase.', 'El módulo de pagos usa interfaces para operar hoy con PayPal y conectar otras pasarelas (como Wompi) mañana sin dañar el código existente.', 'Deuda técnica futura: automatizar revisión de documentos, controlar aceptación concurrente al mismo segundo e incluir distancia y horarios en tarifas.'], qa: 'Las interfaces desacopladas permiten sustituir infraestructura sin reescribir reglas del dominio.' },
+    { expositor: 'Salomé Toro · Bloque 2 (7.3 y 7.4)', title: 'Pruebas Unitarias y Funcionales', points: ['Unitarias: tope automático cuando un servicio urgente supera el precio máximo, y bloqueo de dinero cuando hay disputa activa.', 'Funcionales: clic en "Simular recorrido real" para mostrar cliente → técnico verificado → solicitud → chat al aceptar → pago PayPal en custodia.'], qa: 'Las reglas críticas financieras se protegen siempre del lado del servidor.' },
+    { expositor: 'Salomé Toro · Bloque 3 (7.5)', title: 'Seguridad en 4 Frentes', points: ['Control de acceso: JWT + permisos por rol + bloqueo tras 5 intentos fallidos.', 'Datos: documentos en Supabase Storage fuera de la BD principal.', 'Finanzas: PayPal gestiona el pago sin guardar datos bancarios y retiene en custodia.', 'Confianza: filtros que excluyen técnicos no verificados de las búsquedas.'], qa: 'Puedes hacer clic en cada frente de seguridad para activar el pulso del Faro 3D.' },
     { expositor: 'Amy Herazo · 9.1 y 9.2', title: 'Equipo y Herramientas (Vista Minimalista)', points: ['Explicar oralmente la asignación de roles para el documento (Puntos 7, 9, 10, 11) y para Release v2 (8.1 Front, 8.2 Back, 8.3 BD, 8.4 Demo).'], qa: 'Metodología iterativa corta con tablero USM en Miro y trazabilidad en GitHub.' },
     { expositor: 'Amy Herazo · 9.3 y 9.4', title: 'Cronograma, Hitos y 9.5 Dependencias (Oral)', points: ['Recorrer las 4 barras hasta HOY (26 nov) y el cierre del 3 dic.', '9.5 Dependencias (solo referencia oral): (1) BD e Infra antes de pruebas integrales; (2) API Backend antes de integración móvil v2; (3) Despliegue Railway antes de validar pagos y seguridad.'], qa: 'El trabajo paralelo desde el 12 de noviembre asegura llegar completos a Release v2.' },
     { expositor: 'Santiago Jaramillo · 10', title: 'Presupuesto $12.740.000 COP', points: ['Filtrar "Gasto Efectivo ($340K)" para probar que solo salieron $320K en materiales y $20K en salidas de campo.', 'Aclarar internamente si en Google Docs los párrafos 10.1/10.2 aún muestran $120.000/$12.840.000: la tabla oficial actualizada suma $12.740.000 con $20.000 en salidas.'], qa: 'Transparencia absoluta entre valorización en especie y gasto real.' },
@@ -427,10 +427,10 @@
 
     function renderPipeline(adapterName) {
       const cfg = {
-        WompiAdapter: { color: '#34d399', sub: 'Pasarela activa hoy' },
-        OtraPasarela: { color: '#38bdf8', sub: 'Extensible sin romper código' },
-        PasarelaSimulada: { color: '#fbbf24', sub: 'Pruebas deterministas' }
-      }[adapterName] || { color: '#34d399', sub: 'Adaptador activo' };
+        PayPalAdapter: { color: '#38bdf8', sub: 'Pasarela activa hoy' },
+        WompiAdapter: { color: '#fbbf24', sub: 'Extensible sin romper código' },
+        PasarelaSimulada: { color: '#34d399', sub: 'Pruebas deterministas' }
+      }[adapterName] || { color: '#38bdf8', sub: 'Adaptador activo' };
 
       svg.innerHTML = `
         <path d="M 85 62 L 820 62" stroke="rgba(148, 163, 184, 0.28)" stroke-width="4" stroke-linecap="round"/>
@@ -475,7 +475,7 @@
       btn.classList.add('active');
       renderPipeline(btn.dataset.adapter);
     });
-    renderPipeline('WompiAdapter');
+    renderPipeline('PayPalAdapter');
 
     function renderDebts(activeId) {
       debtList.innerHTML = DEBT_DATA.map(d => `
