@@ -38,9 +38,14 @@
 
     function draw() {
       ctx.clearRect(0, 0, w, h);
-      const isLight = document.body.getAttribute('data-surface') === 'light';
-      const dotColor = isLight ? 'rgba(15, 23, 42, 0.25)' : 'rgba(251, 113, 133, 0.36)';
-      const lineColor = isLight ? 'rgba(15, 23, 42, 0.14)' : 'rgba(148, 163, 184, 0.16)';
+      const theme = document.body.getAttribute('data-theme') || 'cover';
+      const palette = {
+        amy: ['rgba(129, 140, 248, 0.36)', 'rgba(129, 140, 248, 0.16)'],
+        santiago: ['rgba(52, 211, 153, 0.34)', 'rgba(56, 189, 248, 0.15)'],
+        nataly: ['rgba(251, 191, 36, 0.34)', 'rgba(251, 191, 36, 0.15)']
+      }[theme] || ['rgba(251, 113, 133, 0.36)', 'rgba(148, 163, 184, 0.16)'];
+      const dotColor = palette[0];
+      const lineColor = palette[1];
 
       for (let i = 0; i < nodes.length; i++) {
         const a = nodes[i];
@@ -201,9 +206,9 @@
   ];
 
   const DONUT_SEGMENTS = [
-    { id: 'especie', label: 'Aporte en especie (Personal + Equipos)', pct: 87.9, val: '$11.200.000 COP', color: '#059669', desc: 'Esfuerzo académico y hardware disponible.' },
-    { id: 'creditos', label: 'Herramientas gratuitas / créditos', pct: 9.4, val: '$1.200.000 COP', color: '#0284c7', desc: 'Railway Trial, PayPal Sandbox, GitHub, Miro, Expo y UdeA.' },
-    { id: 'operativo', label: 'Desembolso efectivo real', pct: 2.7, val: '$340.000 COP', color: '#d97706', desc: '$320.000 materiales/conectividad + $20.000 salidas de campo.' }
+    { id: 'especie', label: 'Aporte en especie (Personal + Equipos)', pct: 87.9, val: '$11.200.000 COP', color: '#10b981', desc: 'Esfuerzo académico y hardware disponible.' },
+    { id: 'creditos', label: 'Herramientas gratuitas / créditos', pct: 9.4, val: '$1.200.000 COP', color: '#38bdf8', desc: 'Railway Trial, PayPal Sandbox, GitHub, Miro, Expo y UdeA.' },
+    { id: 'operativo', label: 'Desembolso efectivo real', pct: 2.7, val: '$340.000 COP', color: '#fbbf24', desc: '$320.000 materiales/conectividad + $20.000 salidas de campo.' }
   ];
 
   const SCENARIOS = {
@@ -339,7 +344,7 @@
 
     const active = slides[next];
     const theme = active.dataset.chapter || 'cover';
-    const surface = active.dataset.surface || 'light';
+    const surface = active.dataset.surface || 'dark';
     document.body.setAttribute('data-theme', theme);
     document.body.setAttribute('data-surface', surface);
 
@@ -438,7 +443,7 @@
   });
 
   /* ----------------------------------------------------------------------
-     4. SLIDE 3: 7.1 PIPELINE SVG CONTRASTADO (LIGHT MODE)
+     4. SLIDE 3: 7.1 PIPELINE SVG CONTRASTADO (DARK MODE)
      ---------------------------------------------------------------------- */
   function initSlide3() {
     const tabs = document.getElementById('adapter-swap-tabs');
@@ -446,42 +451,42 @@
 
     function renderPipeline(adapterName) {
       const cfg = {
-        PayPalAdapter: { color: '#0284c7', sub: 'REST v2 · AUTHORIZE (Live)' },
-        PasarelaSimulada: { color: '#059669', sub: 'Determinista · Tests JUnit' },
-        WompiAdapter: { color: '#d97706', sub: 'Esqueleto listo extensible' }
-      }[adapterName] || { color: '#0284c7', sub: 'Adaptador activo' };
+        PayPalAdapter: { color: '#38bdf8', sub: 'REST v2 · AUTHORIZE (Live)' },
+        PasarelaSimulada: { color: '#34d399', sub: 'Determinista · Tests JUnit' },
+        WompiAdapter: { color: '#fbbf24', sub: 'Esqueleto listo extensible' }
+      }[adapterName] || { color: '#38bdf8', sub: 'Adaptador activo' };
 
       svg.innerHTML = `
-        <path d="M 85 70 L 820 70" stroke="#e2e8f0" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 85 70 L 820 70" stroke="rgba(148, 163, 184, 0.28)" stroke-width="4" stroke-linecap="round"/>
         <path class="flow-dash" d="M 85 70 L 820 70" stroke="${cfg.color}" stroke-width="3" stroke-linecap="round"/>
-        <circle r="6" fill="#b80035">
+        <circle r="6" fill="#fb7185">
           <animateMotion dur="2.2s" repeatCount="indefinite" path="M 85 70 L 820 70"/>
         </circle>
 
         <g transform="translate(95,70)">
-          <rect x="-78" y="-34" width="156" height="68" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-          <text y="-4" text-anchor="middle" fill="#0f172a" font-size="14" font-weight="800" font-family="Outfit, sans-serif">Expo App 58</text>
-          <text y="16" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono, monospace">HTTPS + JWT</text>
+          <rect x="-78" y="-34" width="156" height="68" rx="14" fill="rgba(15, 23, 42, 0.92)" stroke="rgba(148, 163, 184, 0.34)" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#f8fafc" font-size="14" font-weight="800" font-family="Outfit, sans-serif">Expo App 58</text>
+          <text y="16" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">HTTPS + JWT</text>
         </g>
         <g transform="translate(285,70)">
-          <rect x="-82" y="-34" width="164" height="68" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-          <text y="-4" text-anchor="middle" fill="#0f172a" font-size="14" font-weight="800" font-family="Outfit, sans-serif">Controller &amp; Service</text>
-          <text y="16" text-anchor="middle" fill="#64748b" font-size="11" font-family="JetBrains Mono, monospace">SRP + OCP Strategy</text>
+          <rect x="-82" y="-34" width="164" height="68" rx="14" fill="rgba(15, 23, 42, 0.92)" stroke="rgba(148, 163, 184, 0.34)" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#f8fafc" font-size="14" font-weight="800" font-family="Outfit, sans-serif">Controller &amp; Service</text>
+          <text y="16" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="JetBrains Mono, monospace">SRP + OCP Strategy</text>
         </g>
         <g transform="translate(485,70)">
-          <rect x="-88" y="-38" width="176" height="76" rx="14" fill="#fff1f2" stroke="#b80035" stroke-dasharray="5 3" stroke-width="2"/>
-          <text y="-5" text-anchor="middle" fill="#b80035" font-size="13.5" font-weight="800" font-family="JetBrains Mono, monospace">«IPasarelaPagos»</text>
-          <text y="16" text-anchor="middle" fill="#334155" font-size="11" font-family="Plus Jakarta Sans, sans-serif">Contrato Dominio (DIP)</text>
+          <rect x="-88" y="-38" width="176" height="76" rx="14" fill="rgba(225, 29, 72, 0.14)" stroke="#fb7185" stroke-dasharray="5 3" stroke-width="2"/>
+          <text y="-5" text-anchor="middle" fill="#fda4af" font-size="13.5" font-weight="800" font-family="JetBrains Mono, monospace">«IPasarelaPagos»</text>
+          <text y="16" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Plus Jakarta Sans, sans-serif">Contrato Dominio (DIP)</text>
         </g>
         <g transform="translate(690,70)">
-          <rect x="-90" y="-38" width="180" height="76" rx="14" fill="#ffffff" stroke="${cfg.color}" stroke-width="2.6"/>
+          <rect x="-90" y="-38" width="180" height="76" rx="14" fill="rgba(15, 23, 42, 0.95)" stroke="${cfg.color}" stroke-width="2.6"/>
           <text y="-5" text-anchor="middle" fill="${cfg.color}" font-size="14" font-weight="800" font-family="JetBrains Mono, monospace">${adapterName}</text>
-          <text y="16" text-anchor="middle" fill="#334155" font-size="11" font-family="Plus Jakarta Sans, sans-serif">${cfg.sub}</text>
+          <text y="16" text-anchor="middle" fill="#cbd5e1" font-size="11" font-family="Plus Jakarta Sans, sans-serif">${cfg.sub}</text>
         </g>
         <g transform="translate(855,70)">
-          <rect x="-56" y="-34" width="112" height="68" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
-          <text y="-4" text-anchor="middle" fill="#065f46" font-size="13.5" font-weight="800" font-family="Outfit, sans-serif">PG 18.7</text>
-          <text y="16" text-anchor="middle" fill="#047857" font-size="11" font-family="JetBrains Mono, monospace">ACID Flyway</text>
+          <rect x="-56" y="-34" width="112" height="68" rx="14" fill="rgba(16, 185, 129, 0.16)" stroke="#34d399" stroke-width="2"/>
+          <text y="-4" text-anchor="middle" fill="#6ee7b7" font-size="13.5" font-weight="800" font-family="Outfit, sans-serif">PG 18.7</text>
+          <text y="16" text-anchor="middle" fill="#a7f3d0" font-size="11" font-family="JetBrains Mono, monospace">ACID Flyway</text>
         </g>
       `;
     }
@@ -499,7 +504,7 @@
   }
 
   /* ----------------------------------------------------------------------
-     5. SLIDE 4: 7.2 CUADRANTE 2x2 LIGHT
+     5. SLIDE 4: 7.2 CUADRANTE 2x2 DARK
      ---------------------------------------------------------------------- */
   function initSlide4() {
     const svg = document.getElementById('debt-quadrant-svg');
@@ -515,21 +520,21 @@
       strip.querySelectorAll('.debt-chip-ed').forEach(b => b.classList.toggle('active', b.dataset.debt === d.id));
 
       svg.innerHTML = `
-        <rect x="52" y="18" width="446" height="242" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-        <rect x="275" y="18" width="223" height="121" fill="rgba(184, 0, 53, 0.06)"/>
-        <line x1="275" y1="18" x2="275" y2="260" stroke="#cbd5e1" stroke-dasharray="4 4"/>
-        <line x1="52" y1="139" x2="498" y2="139" stroke="#cbd5e1" stroke-dasharray="4 4"/>
-        <text x="386" y="38" text-anchor="middle" fill="#b80035" font-size="11" font-weight="800" font-family="JetBrains Mono, monospace">PRIORIDAD ALTA</text>
-        <text x="275" y="285" text-anchor="middle" fill="#475569" font-size="12" font-weight="700" font-family="Plus Jakarta Sans, sans-serif">Impacto en Escalabilidad / Negocio →</text>
-        <text x="24" y="142" text-anchor="middle" fill="#475569" font-size="12" font-weight="700" transform="rotate(-90 24 142)" font-family="Plus Jakarta Sans, sans-serif">Criticidad →</text>
+        <rect x="52" y="18" width="446" height="242" rx="14" fill="rgba(6, 10, 20, 0.72)" stroke="rgba(148, 163, 184, 0.28)" stroke-width="1.5"/>
+        <rect x="275" y="18" width="223" height="121" fill="rgba(225, 29, 72, 0.16)"/>
+        <line x1="275" y1="18" x2="275" y2="260" stroke="rgba(148, 163, 184, 0.28)" stroke-dasharray="4 4"/>
+        <line x1="52" y1="139" x2="498" y2="139" stroke="rgba(148, 163, 184, 0.28)" stroke-dasharray="4 4"/>
+        <text x="386" y="38" text-anchor="middle" fill="#fda4af" font-size="11" font-weight="800" font-family="JetBrains Mono, monospace">PRIORIDAD ALTA</text>
+        <text x="275" y="285" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700" font-family="Plus Jakarta Sans, sans-serif">Impacto en Escalabilidad / Negocio →</text>
+        <text x="24" y="142" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700" transform="rotate(-90 24 142)" font-family="Plus Jakarta Sans, sans-serif">Criticidad →</text>
         ${DEBT_DATA.map(item => {
           const active = item.id === d.id;
-          const col = item.x > 275 ? '#b80035' : '#d97706';
+          const col = item.x > 275 ? '#fb7185' : '#fbbf24';
           return `
             <g class="q-node" data-debt="${item.id}" style="cursor:pointer;">
               ${active ? `<circle cx="${item.x}" cy="${item.y}" r="22" fill="none" stroke="${col}" stroke-width="2"><animate attributeName="r" values="12;25;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.85;0.12;0.85" dur="2s" repeatCount="indefinite"/></circle>` : ''}
-              <circle cx="${item.x}" cy="${item.y}" r="${active ? 10 : 7}" fill="${col}" stroke="#ffffff" stroke-width="2.5"/>
-              <text x="${item.x}" y="${item.y + 24}" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="${active ? '800' : '600'}" font-family="Plus Jakarta Sans, sans-serif">${item.short}</text>
+              <circle cx="${item.x}" cy="${item.y}" r="${active ? 10 : 7}" fill="${col}" stroke="#f8fafc" stroke-width="2.2"/>
+              <text x="${item.x}" y="${item.y + 24}" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="${active ? '800' : '600'}" font-family="Plus Jakarta Sans, sans-serif">${item.short}</text>
             </g>
           `;
         }).join('')}
@@ -707,10 +712,10 @@
         </div>
         <div class="pf-footer-ed ${failMode ? 'fail' : ''}">
           <div style="flex:1;">
-            <strong style="display:block;font-size:0.84rem;color:${failMode ? '#b45309' : '#0f172a'};margin-bottom:3px;">
+            <strong style="display:block;font-size:0.84rem;color:${failMode ? '#fde68a' : '#f8fafc'};margin-bottom:3px;">
               ${failMode ? '⚡ Plan de contingencia ante fallo:' : 'Transición de estados verificada:'}
             </strong>
-            <span style="font-size:0.88rem;color:#334155;">${failMode ? d.fail : 'Ejecución validada en la app móvil y API PostgreSQL.'}</span>
+            <span style="font-size:0.88rem;color:#cbd5e1;">${failMode ? d.fail : 'Ejecución validada en la app móvil y API PostgreSQL.'}</span>
           </div>
           <div class="pf-state-badges">
             ${d.states.map((st, idx) => `<span class="st-badge-ed ${idx <= step && !failMode ? 'lit' : ''}">${st}</span>`).join('')}
@@ -789,7 +794,7 @@
   }
 
   /* ----------------------------------------------------------------------
-     9. SLIDE 9: 9.3 GANTT LIGHT & 9.4 HITOS (AMY MINIMALISTA)
+     9. SLIDE 9: 9.3 GANTT DARK & 9.4 HITOS (AMY MINIMALISTA)
      ---------------------------------------------------------------------- */
   function initSlide9() {
     const svg = document.getElementById('gantt-svg');
@@ -798,10 +803,10 @@
     let currentHito = 2;
 
     const tasks = [
-      { label: 'Análisis y diseño inicial', owner: 'Todo el equipo', dates: '23 sep – 1 oct', startX: 270, endX: 385, color: '#4f46e5', hito: 0 },
-      { label: 'Arquitectura y patrones', owner: 'Todo el equipo', dates: '15 oct – 5 nov', startX: 455, endX: 660, color: '#6366f1', hito: 1 },
-      { label: 'Documento: puntos 7, 9, 10, 11', owner: 'Salomé, Amy, Santiago, Nataly', dates: '12 nov – 26 nov', startX: 705, endX: 835, color: '#059669', hito: 2 },
-      { label: 'Implementación funcional', owner: 'Todos los integrantes', dates: '12 nov – 3 dic', startX: 705, endX: 960, color: '#b80035', hito: 3 }
+      { label: 'Análisis y diseño inicial', owner: 'Todo el equipo', dates: '23 sep – 1 oct', startX: 270, endX: 385, color: '#6366f1', hito: 0 },
+      { label: 'Arquitectura y patrones', owner: 'Todo el equipo', dates: '15 oct – 5 nov', startX: 455, endX: 660, color: '#818cf8', hito: 1 },
+      { label: 'Documento: puntos 7, 9, 10, 11', owner: 'Salomé, Amy, Santiago, Nataly', dates: '12 nov – 26 nov', startX: 705, endX: 835, color: '#10b981', hito: 2 },
+      { label: 'Implementación funcional', owner: 'Todos los integrantes', dates: '12 nov – 3 dic', startX: 705, endX: 960, color: '#e11d48', hito: 3 }
     ];
 
     const ticks = [
@@ -819,9 +824,9 @@
         const isToday = t.text.includes('HOY');
         markup += `
           <line x1="${t.x}" y1="18" x2="${t.x}" y2="188"
-            stroke="${isToday ? '#059669' : '#e2e8f0'}"
+            stroke="${isToday ? '#34d399' : 'rgba(148, 163, 184, 0.18)'}"
             stroke-width="${isToday ? '2.2' : '1'}" stroke-dasharray="${isToday ? '4 4' : ''}" />
-          <text x="${t.x}" y="210" text-anchor="${t.anchor}" fill="${isToday ? '#047857' : '#64748b'}"
+          <text x="${t.x}" y="210" text-anchor="${t.anchor}" fill="${isToday ? '#6ee7b7' : '#94a3b8'}"
             font-size="11.5" font-family="JetBrains Mono, monospace" font-weight="${isToday ? '800' : '600'}">${t.text}</text>
         `;
       });
@@ -832,12 +837,12 @@
         const w = t.endX - t.startX;
         markup += `
           <g class="gantt-row" data-hito="${t.hito}" style="cursor:pointer;">
-            <text x="6" y="${y + 15}" fill="#0f172a" font-size="13" font-weight="${active ? '800' : '700'}" font-family="Plus Jakarta Sans, sans-serif">${t.label}</text>
-            <text x="6" y="${y + 30}" fill="#64748b" font-size="11" font-family="Plus Jakarta Sans, sans-serif">${t.owner}</text>
-            <rect x="270" y="${y + 2}" width="690" height="25" rx="8" fill="#f1f5f9"/>
+            <text x="6" y="${y + 15}" fill="#f8fafc" font-size="13" font-weight="${active ? '800' : '700'}" font-family="Plus Jakarta Sans, sans-serif">${t.label}</text>
+            <text x="6" y="${y + 30}" fill="#94a3b8" font-size="11" font-family="Plus Jakarta Sans, sans-serif">${t.owner}</text>
+            <rect x="270" y="${y + 2}" width="690" height="25" rx="8" fill="rgba(148, 163, 184, 0.12)"/>
             <rect class="${animateBars ? 'gantt-bar-anim' : ''}" style="animation-delay:${idx * 110}ms"
               x="${t.startX}" y="${y + 2}" width="${w}" height="25" rx="8"
-              fill="${t.color}" opacity="${active ? '1' : '0.78'}" stroke="${active ? '#0f172a' : 'none'}" stroke-width="1.8"/>
+              fill="${t.color}" opacity="${active ? '1' : '0.82'}" stroke="${active ? '#ffffff' : 'none'}" stroke-width="1.8"/>
             <text x="${t.startX + w / 2}" y="${y + 19}" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" font-family="JetBrains Mono, monospace">${t.dates}</text>
           </g>
         `;
@@ -945,7 +950,7 @@
     function drawDonut(id, animateSweep) {
       activeSeg = id;
       let offset = 0;
-      let html = `<circle cx="120" cy="120" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="28"/>`;
+      let html = `<circle cx="120" cy="120" r="${r}" fill="none" stroke="rgba(148, 163, 184, 0.16)" stroke-width="28"/>`;
 
       DONUT_SEGMENTS.forEach(s => {
         const dash = (s.pct / 100) * circ;
